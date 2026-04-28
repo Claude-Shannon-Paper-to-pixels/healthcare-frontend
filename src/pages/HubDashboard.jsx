@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { initAuth } from '../api/auth';
 import Navbar from '../components/Navbar';
 
-const OCR_URL = 'https://PLACEHOLDER_OCR_URL';
+const OCR_URL = 'http://100.98.81.26:5173/';
 
 const APPS = [
   {
