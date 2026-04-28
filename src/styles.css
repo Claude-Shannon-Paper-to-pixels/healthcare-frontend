@@ -1021,6 +1021,88 @@ body {
   gap: 5px;
 }
 
+/* Expandable IGL cell */
+.igl-cell-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 110px;
+}
+
+.igl-cell-header {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.igl-expand-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 2px 3px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.igl-expand-btn:hover {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.igl-chevron {
+  transition: transform 0.2s ease;
+}
+
+.igl-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.igl-expand-panel {
+  margin-top: 6px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  animation: igl-panel-in 0.15s ease;
+}
+
+@keyframes igl-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.igl-timestamp {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.71rem;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.igl-expand-docs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Missing badge colours for deferment statuses */
+.igl-badge.deferment {
+  color: #b45309;
+}
+
+.igl-badge.deferment-replied {
+  color: #5b21b6;
+}
+
 .igl-letter-btn {
   display: inline-flex;
   align-items: center;

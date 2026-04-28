@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initAuth } from '../api/auth';
-import { getPatients } from '../api/patients';
+import { getPatients, updatePatientInsurance } from '../api/patients';
 import Navbar from '../components/Navbar';
+import DefermentModal from '../components/DefermentModal';
 import IglStatusPieChart from './charts/IglStatusPieChart';
 import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
@@ -17,9 +18,17 @@ function DoctorDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [initializing, setInitializing] = useState(true);
+  const [defermentModalOpen, setDefermentModalOpen] = useState(false);
+  const [selectedDefermentPatient, setSelectedDefermentPatient] = useState(null);
+  const [selectedDefermentInsurance, setSelectedDefermentInsurance] = useState(null);
+  const [defermentUpdating, setDefermentUpdating] = useState(false);
+  const [uploadedFilesMap, setUploadedFilesMap] = useState(() => new Map());
   const [searchTerm, setSearchTerm] = useState('');
   const [operationDateFilter, setOperationDateFilter] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [expandedIglCells, setExpandedIglCells] = useState(new Set());
+  // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
+  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => new Map());
 
   useEffect(() => {
     const initialize = async () => {
@@ -68,6 +77,23 @@ function DoctorDashboard() {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
+    });
+  };
+
+  const formatDateTime = (date) => {
+    if (!date) return '—';
+    return date.toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const toggleIglCell = (insuranceId) => {
+    setExpandedIglCells(prev => {
+      const next = new Set(prev);
+      if (next.has(insuranceId)) next.delete(insuranceId);
+      else next.add(insuranceId);
+      return next;
     });
   };
 
@@ -244,6 +270,51 @@ function DoctorDashboard() {
     ];
   }, [filteredPatients]);
 
+  const handleOpenDeferment = (patient, insurance) => {
+    if (!insurance?.id) return;
+    setSelectedDefermentPatient(patient);
+    setSelectedDefermentInsurance(insurance);
+    setDefermentModalOpen(true);
+  };
+
+  const handleDefermentSubmit = async (file) => {
+    if (!selectedDefermentInsurance?.id) return;
+    setDefermentUpdating(true);
+    try {
+      await updatePatientInsurance(selectedDefermentInsurance.id, { IGL_status: 'Deferment Replied' });
+      setUploadedFilesMap(prev => {
+        const next = new Map(prev);
+        next.set(selectedDefermentInsurance.id, file);
+        return next;
+      });
+      setPatients(prevPatients =>
+        prevPatients.map(patient => {
+          if (patient.id === selectedDefermentPatient.id) {
+            const updatedInsurance = Array.isArray(patient.insurance)
+              ? patient.insurance.map(ins =>
+                  ins.id === selectedDefermentInsurance.id
+                    ? { ...ins, IGL_status: 'Deferment Replied' }
+                    : ins
+                )
+              : patient.insurance?.id === selectedDefermentInsurance.id
+                ? { ...patient.insurance, IGL_status: 'Deferment Replied' }
+                : patient.insurance;
+            return { ...patient, insurance: updatedInsurance };
+          }
+          return patient;
+        })
+      );
+      setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedDefermentInsurance.id, new Date()); return next; });
+      setDefermentModalOpen(false);
+      setSelectedDefermentInsurance(null);
+      setSelectedDefermentPatient(null);
+    } catch (err) {
+      console.error('Failed to update deferment status:', err);
+    } finally {
+      setDefermentUpdating(false);
+    }
+  };
+
   if (!user || initializing) return <div className="loading">Loading...</div>;
 
   return (
@@ -354,9 +425,64 @@ function DoctorDashboard() {
                             </span>
                           </td>
                           <td>
-                            <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
-                              {insurance?.IGL_status || 'N/A'}
-                            </span>
+                            <div className="igl-cell-v2">
+                              <div className="igl-cell-header">
+                                <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
+                                  {insurance?.IGL_status || 'N/A'}
+                                </span>
+                                {insurance?.id && (
+                                  <button
+                                    type="button"
+                                    className="igl-expand-btn"
+                                    onClick={() => toggleIglCell(insurance.id)}
+                                    aria-label="Toggle IGL details"
+                                  >
+                                    <svg className={`igl-chevron${expandedIglCells.has(insurance.id) ? ' expanded' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                              {expandedIglCells.has(insurance?.id) && (
+                                <div className="igl-expand-panel">
+                                  <div className="igl-timestamp">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                                      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                    {iglStatusTimestamps.get(insurance.id)
+                                      ? formatDateTime(iglStatusTimestamps.get(insurance.id))
+                                      : '—'}
+                                  </div>
+                                  <div className="igl-expand-docs">
+                                    {insurance?.IGL_status === 'Approved' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-approved" onClick={() => window.open('/approved.pdf', '_blank')}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View GL
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Declined' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-declined" onClick={() => window.open('/declined.pdf', '_blank')}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Denial
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Deferment' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-deferment" onClick={() => handleOpenDeferment(patient, insurance)}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Deferment
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Deferment Replied' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-deferment-replied" onClick={() => handleOpenDeferment(patient, insurance)}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Reply
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </td>
                           <td className="td-date">{formatDate(admission?.operation_date)}</td>
                           <td className="td-doctor">
@@ -430,6 +556,20 @@ function DoctorDashboard() {
           </div>
         )}
       </div>
+
+      <DefermentModal
+        isOpen={defermentModalOpen}
+        patient={selectedDefermentPatient}
+        insurance={selectedDefermentInsurance}
+        uploadedFile={selectedDefermentInsurance ? uploadedFilesMap.get(selectedDefermentInsurance.id) : null}
+        onClose={() => {
+          setDefermentModalOpen(false);
+          setSelectedDefermentInsurance(null);
+          setSelectedDefermentPatient(null);
+        }}
+        onSubmit={handleDefermentSubmit}
+        loading={defermentUpdating}
+      />
     </div>
   );
 }

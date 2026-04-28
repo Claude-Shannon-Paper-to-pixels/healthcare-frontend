@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { sendDefermentEmail } from '../utils/sendDefermentEmail';
 import './DefermentModal.css';
 
 function DefermentModal({ isOpen, patient, insurance, uploadedFile, onClose, onSubmit, loading }) {
   const [dragOver, setDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [emailStatus, setEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'failed'
   const fileInputRef = useRef(null);
 
   const isDefermentReplied = insurance?.IGL_status === 'Deferment Replied';
@@ -15,8 +17,19 @@ function DefermentModal({ isOpen, patient, insurance, uploadedFile, onClose, onS
   );
 
   useEffect(() => {
-    if (!isOpen) setSelectedFile(null);
+    if (!isOpen) {
+      setSelectedFile(null);
+      setEmailStatus('idle');
+    }
   }, [isOpen]);
+
+  const handleSubmit = (file) => {
+    onSubmit(file);
+    setEmailStatus('sending');
+    sendDefermentEmail(patient, insurance)
+      .then(() => setEmailStatus('sent'))
+      .catch(() => setEmailStatus('failed'));
+  };
 
   if (!isOpen) return null;
 
@@ -157,7 +170,7 @@ function DefermentModal({ isOpen, patient, insurance, uploadedFile, onClose, onS
                 type="button"
                 className="def-btn def-btn-submit"
                 disabled={!selectedFile || loading}
-                onClick={() => onSubmit(selectedFile)}
+                onClick={() => handleSubmit(selectedFile)}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -177,6 +190,32 @@ function DefermentModal({ isOpen, patient, insurance, uploadedFile, onClose, onS
               Close
             </button>
           </div>
+          {emailStatus !== 'idle' && (
+            <div className={`def-email-status def-email-${emailStatus}`}>
+              {emailStatus === 'sending' && (
+                <>
+                  <span className="def-email-spinner" />
+                  Sending email notification…
+                </>
+              )}
+              {emailStatus === 'sent' && (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Email notification sent
+                </>
+              )}
+              {emailStatus === 'failed' && (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Email failed — reply was still saved
+                </>
+              )}
+            </div>
+          )}
 
         </div>
       </div>

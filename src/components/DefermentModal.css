@@ -296,3 +296,49 @@
   .def-modal-actions { flex-direction: column-reverse; }
   .def-btn { width: 100%; justify-content: center; }
 }
+
+/* Email status feedback */
+.def-email-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  animation: defFadeIn 0.2s ease;
+}
+
+.def-email-sending {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.def-email-sent {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.def-email-failed {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+}
+
+.def-email-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 2px solid #bfdbfe;
+  border-top-color: #1d4ed8;
+  border-radius: 50%;
+  animation: defSpin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes defSpin {
+  to { transform: rotate(360deg); }
+}

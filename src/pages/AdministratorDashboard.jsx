@@ -43,6 +43,9 @@ function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [operationDateFilter, setOperationDateFilter] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [expandedIglCells, setExpandedIglCells] = useState(new Set());
+  // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
+  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => new Map());
 
   useEffect(() => {
     const initialize = async () => {
@@ -166,6 +169,7 @@ function AdminDashboard() {
         })
       );
       
+      setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedInsurance.id, new Date()); return next; });
       setIglModalOpen(false);
       setSelectedInsurance(null);
       setSelectedIglPatient(null);
@@ -210,6 +214,7 @@ function AdminDashboard() {
           return patient;
         })
       );
+      setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedDefermentInsurance.id, new Date()); return next; });
       setDefermentModalOpen(false);
       setSelectedDefermentInsurance(null);
       setSelectedDefermentPatient(null);
@@ -263,6 +268,23 @@ function AdminDashboard() {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
+    });
+  };
+
+  const formatDateTime = (date) => {
+    if (!date) return '—';
+    return date.toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const toggleIglCell = (insuranceId) => {
+    setExpandedIglCells(prev => {
+      const next = new Set(prev);
+      if (next.has(insuranceId)) next.delete(insuranceId);
+      else next.add(insuranceId);
+      return next;
     });
   };
 
@@ -571,58 +593,69 @@ function AdminDashboard() {
                             </button>
                           </td>
                           <td>
-                            <div className="igl-cell">
-                              <button
-                                type="button"
-                                className="status-button"
-                                onClick={() => handleOpenIglStatus(patient, insurance)}
-                                disabled={!insurance?.id || iglUpdating}
-                              >
-                                <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
-                                  {insurance?.IGL_status || 'N/A'}
-                                </span>
-                              </button>
-                              {(insurance?.IGL_status === 'Approved' || insurance?.IGL_status === 'Declined') && (
+                            <div className="igl-cell-v2">
+                              <div className="igl-cell-header">
                                 <button
                                   type="button"
-                                  className={`igl-letter-btn igl-letter-${insurance.IGL_status.toLowerCase()}`}
-                                  onClick={() => window.open(`/${insurance.IGL_status.toLowerCase()}.pdf`, '_blank')}
-                                  title={`View ${insurance.IGL_status} Letter`}
+                                  className="status-button"
+                                  onClick={() => handleOpenIglStatus(patient, insurance)}
+                                  disabled={!insurance?.id || iglUpdating}
                                 >
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  </svg>
-                                  View Letter
+                                  <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
+                                    {insurance?.IGL_status || 'N/A'}
+                                  </span>
                                 </button>
-                              )}
-                              {insurance?.IGL_status === 'Deferment' && (
-                                <button
-                                  type="button"
-                                  className="igl-letter-btn igl-letter-deferment"
-                                  onClick={() => handleOpenDeferment(patient, insurance)}
-                                  title="View Deferment"
-                                >
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  </svg>
-                                  View Deferment
-                                </button>
-                              )}
-                              {insurance?.IGL_status === 'Deferment Replied' && (
-                                <button
-                                  type="button"
-                                  className="igl-letter-btn igl-letter-deferment-replied"
-                                  onClick={() => handleOpenDeferment(patient, insurance)}
-                                  title="View Reply"
-                                >
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  </svg>
-                                  View Reply
-                                </button>
+                                {insurance?.id && (
+                                  <button
+                                    type="button"
+                                    className="igl-expand-btn"
+                                    onClick={() => toggleIglCell(insurance.id)}
+                                    aria-label="Toggle IGL details"
+                                  >
+                                    <svg className={`igl-chevron${expandedIglCells.has(insurance.id) ? ' expanded' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                              {expandedIglCells.has(insurance?.id) && (
+                                <div className="igl-expand-panel">
+                                  <div className="igl-timestamp">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                                      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                    </svg>
+                                    {iglStatusTimestamps.get(insurance.id)
+                                      ? formatDateTime(iglStatusTimestamps.get(insurance.id))
+                                      : '—'}
+                                  </div>
+                                  <div className="igl-expand-docs">
+                                    {insurance?.IGL_status === 'Approved' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-approved" onClick={() => window.open('/approved.pdf', '_blank')}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View GL
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Declined' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-declined" onClick={() => window.open('/declined.pdf', '_blank')}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Denial
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Deferment' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-deferment" onClick={() => handleOpenDeferment(patient, insurance)}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Deferment
+                                      </button>
+                                    )}
+                                    {insurance?.IGL_status === 'Deferment Replied' && (
+                                      <button type="button" className="igl-letter-btn igl-letter-deferment-replied" onClick={() => handleOpenDeferment(patient, insurance)}>
+                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                        View Reply
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </td>
