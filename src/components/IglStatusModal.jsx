@@ -5,10 +5,9 @@ import './IglStatusModal.css';
 const IGL_STATUS_OPTIONS = [
   'Pending',
   'Approved',
-  'Rejected',
-  'Partial Approval',
-  'Under Review',
-  'Cancelled'
+  'Deferment',
+  'Deferment Replied',
+  'Declined'
 ];
 
 function IglStatusModal({ isOpen, patient, insurance, onClose, onSave, loading, error }) {
@@ -33,9 +32,11 @@ function IglStatusModal({ isOpen, patient, insurance, onClose, onSave, loading, 
     if (!status) return '';
     const lowerStatus = status.toLowerCase();
     if (lowerStatus.includes('approve')) return 'approved';
-    if (lowerStatus.includes('reject')) return 'rejected';
+    if (lowerStatus.includes('decline')) return 'rejected';
     if (lowerStatus.includes('pending')) return 'pending';
     if (lowerStatus.includes('partial')) return 'partial';
+    if (lowerStatus.includes('deferment')) return 'pending';
+    if (lowerStatus.includes('cancel')) return 'rejected';
     return '';
   };
 
