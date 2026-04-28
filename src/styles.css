@@ -1014,6 +1014,77 @@ body {
   color: #991b1b;
 }
 
+.igl-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.igl-letter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  padding: 0.22rem 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.igl-letter-btn.igl-letter-approved {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.igl-letter-btn.igl-letter-approved:hover {
+  background-color: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+
+.igl-letter-btn.igl-letter-declined {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.igl-letter-btn.igl-letter-declined:hover {
+  background-color: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.igl-letter-btn.igl-letter-deferment {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fcd34d;
+}
+
+.igl-letter-btn.igl-letter-deferment:hover {
+  background-color: #d97706;
+  color: white;
+  border-color: #d97706;
+}
+
+.igl-letter-btn.igl-letter-deferment-replied {
+  background-color: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+}
+
+.igl-letter-btn.igl-letter-deferment-replied:hover {
+  background-color: #7c3aed;
+  color: white;
+  border-color: #7c3aed;
+}
+
 /* Admission Status Badges - Inside Button */
 .status-badge {
   display: inline-block;

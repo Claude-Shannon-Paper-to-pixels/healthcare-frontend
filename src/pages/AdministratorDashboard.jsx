@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar';
 import AssignBedModal from './bedcollection/AssignBedModal';
 import AdmissionStatusModal from '../components/AdmissionStatusModal';
 import IglStatusModal from '../components/IglStatusModal';
+import DefermentModal from '../components/DefermentModal';
 import IglStatusPieChart from './charts/IglStatusPieChart';
 import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
@@ -34,6 +35,11 @@ function AdminDashboard() {
   const [selectedInsurance, setSelectedInsurance] = useState(null);
   const [iglUpdating, setIglUpdating] = useState(false);
   const [iglError, setIglError] = useState('');
+  const [defermentModalOpen, setDefermentModalOpen] = useState(false);
+  const [selectedDefermentPatient, setSelectedDefermentPatient] = useState(null);
+  const [selectedDefermentInsurance, setSelectedDefermentInsurance] = useState(null);
+  const [defermentUpdating, setDefermentUpdating] = useState(false);
+  const [uploadedFilesMap, setUploadedFilesMap] = useState(() => new Map());
   const [searchTerm, setSearchTerm] = useState('');
   const [operationDateFilter, setOperationDateFilter] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -167,6 +173,50 @@ function AdminDashboard() {
       setIglError(err.message || 'Failed to update IGL status');
     } finally {
       setIglUpdating(false);
+    }
+  };
+
+  const handleOpenDeferment = (patient, insurance) => {
+    if (!insurance?.id) return;
+    setSelectedDefermentPatient(patient);
+    setSelectedDefermentInsurance(insurance);
+    setDefermentModalOpen(true);
+  };
+
+  const handleDefermentSubmit = async (file) => {
+    if (!selectedDefermentInsurance?.id) return;
+    setDefermentUpdating(true);
+    try {
+      await updatePatientInsurance(selectedDefermentInsurance.id, { IGL_status: 'Deferment Replied' });
+      setUploadedFilesMap(prev => {
+        const next = new Map(prev);
+        next.set(selectedDefermentInsurance.id, file);
+        return next;
+      });
+      setPatients(prevPatients =>
+        prevPatients.map(patient => {
+          if (patient.id === selectedDefermentPatient.id) {
+            const updatedInsurance = Array.isArray(patient.insurance)
+              ? patient.insurance.map(ins =>
+                  ins.id === selectedDefermentInsurance.id
+                    ? { ...ins, IGL_status: 'Deferment Replied' }
+                    : ins
+                )
+              : patient.insurance?.id === selectedDefermentInsurance.id
+                ? { ...patient.insurance, IGL_status: 'Deferment Replied' }
+                : patient.insurance;
+            return { ...patient, insurance: updatedInsurance };
+          }
+          return patient;
+        })
+      );
+      setDefermentModalOpen(false);
+      setSelectedDefermentInsurance(null);
+      setSelectedDefermentPatient(null);
+    } catch (err) {
+      console.error('Failed to update deferment status:', err);
+    } finally {
+      setDefermentUpdating(false);
     }
   };
 
@@ -448,7 +498,7 @@ function AdminDashboard() {
               <tbody>
                 {filteredPatients.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-center">
+                    <td colSpan="10" className="text-center">
                       No patients found.
                     </td>
                   </tr>
@@ -521,16 +571,60 @@ function AdminDashboard() {
                             </button>
                           </td>
                           <td>
-                            <button
-                              type="button"
-                              className="status-button"
-                              onClick={() => handleOpenIglStatus(patient, insurance)}
-                              disabled={!insurance?.id || iglUpdating}
-                            >
-                              <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
-                                {insurance?.IGL_status || 'N/A'}
-                              </span>
-                            </button>
+                            <div className="igl-cell">
+                              <button
+                                type="button"
+                                className="status-button"
+                                onClick={() => handleOpenIglStatus(patient, insurance)}
+                                disabled={!insurance?.id || iglUpdating}
+                              >
+                                <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
+                                  {insurance?.IGL_status || 'N/A'}
+                                </span>
+                              </button>
+                              {(insurance?.IGL_status === 'Approved' || insurance?.IGL_status === 'Declined') && (
+                                <button
+                                  type="button"
+                                  className={`igl-letter-btn igl-letter-${insurance.IGL_status.toLowerCase()}`}
+                                  onClick={() => window.open(`/${insurance.IGL_status.toLowerCase()}.pdf`, '_blank')}
+                                  title={`View ${insurance.IGL_status} Letter`}
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  </svg>
+                                  View Letter
+                                </button>
+                              )}
+                              {insurance?.IGL_status === 'Deferment' && (
+                                <button
+                                  type="button"
+                                  className="igl-letter-btn igl-letter-deferment"
+                                  onClick={() => handleOpenDeferment(patient, insurance)}
+                                  title="View Deferment"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  </svg>
+                                  View Deferment
+                                </button>
+                              )}
+                              {insurance?.IGL_status === 'Deferment Replied' && (
+                                <button
+                                  type="button"
+                                  className="igl-letter-btn igl-letter-deferment-replied"
+                                  onClick={() => handleOpenDeferment(patient, insurance)}
+                                  title="View Reply"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  </svg>
+                                  View Reply
+                                </button>
+                              )}
+                            </div>
                           </td>
                           <td className="td-date">{formatDate(admission?.operation_date)}</td>
                           <td className="td-doctor">
@@ -556,7 +650,7 @@ function AdminDashboard() {
                         </tr>
                         {isExpanded && (
                           <tr className="expanded-details-row">
-                            <td colSpan="9">
+                            <td colSpan="10">
                               <div className="expanded-details">
                                 <div className="detail-item">
                                   <span className="detail-label">Insurance</span>
@@ -650,6 +744,22 @@ function AdminDashboard() {
         onSave={handleIglStatusSave}
         loading={iglUpdating}
         error={iglError}
+      />
+
+      <DefermentModal
+        isOpen={defermentModalOpen}
+        patient={selectedDefermentPatient}
+        insurance={selectedDefermentInsurance}
+        uploadedFile={selectedDefermentInsurance ? uploadedFilesMap.get(selectedDefermentInsurance.id) : null}
+        onClose={() => {
+          if (!defermentUpdating) {
+            setDefermentModalOpen(false);
+            setSelectedDefermentInsurance(null);
+            setSelectedDefermentPatient(null);
+          }
+        }}
+        onSubmit={handleDefermentSubmit}
+        loading={defermentUpdating}
       />
 
       {assignError && <div className="error-message">{assignError}</div>}

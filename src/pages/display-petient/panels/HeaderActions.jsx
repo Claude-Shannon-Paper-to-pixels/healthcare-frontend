@@ -17,7 +17,7 @@ function HeaderActions({
           type="button"
           className="btn-primary"
           onClick={() => {
-            setActiveTab('admission');
+            setActiveTab("admission");
             setShowCreateAdmission(true);
           }}
         >
@@ -31,7 +31,7 @@ function HeaderActions({
             type="button"
             className="btn-secondary"
             onClick={() => {
-              setActiveTab('referrals');
+              setActiveTab("referrals");
               setShowCreateReferral(true);
             }}
           >
@@ -42,7 +42,7 @@ function HeaderActions({
             type="button"
             className="btn-secondary"
             onClick={() => {
-              setActiveTab('add-ons');
+              setActiveTab("add-ons");
               setShowCreateAddOn(true);
             }}
           >
@@ -51,9 +51,14 @@ function HeaderActions({
         </>
       )}
 
-      {admission && insurance && (
-        <button type="button" className="btn-secondary" onClick={() => setShowPafModal(true)}>
-          Generate PAF
+      {admission && insurance && insurance.tpa_name && (
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => setShowPafModal(true)}
+          disabled={!insurance}
+        >
+          Submit PAF
         </button>
       )}
 
