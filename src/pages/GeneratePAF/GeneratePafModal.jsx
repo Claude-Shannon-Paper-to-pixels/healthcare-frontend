@@ -75,6 +75,11 @@ export default function GeneratePafModal({
         "_Otw8N2Z4ejOX05uN",
       );
       setEmailSuccess(true);
+      setTimeout(() => {
+        setEmailSuccess(false);
+        reset();
+        onClose();
+      }, 3000);
     } catch (err) {
       setEmailError("Failed to send email. Please try again.");
     } finally {
@@ -145,13 +150,31 @@ export default function GeneratePafModal({
               </div>
             </div>
           )}
+
           {emailSuccess && (
-            <div className="paf-success">
-              <span className="paf-success-icon">✓</span>
-              <div>PAF Submitted! </div>
+            <div
+              style={{
+                position: "absolute",
+                bottom: "80px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "#22c55e",
+                color: "#fff",
+                padding: "14px 28px",
+                borderRadius: "10px",
+                fontWeight: "600",
+                fontSize: "16px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+                zIndex: 9999,
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              ✓ PAF Submitted!
             </div>
           )}
-          {emailError && <div className="paf-error">{emailError}</div>}
 
           {loading && pollInfo && (
             <div className="paf-progress">
