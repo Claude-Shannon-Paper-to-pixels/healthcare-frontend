@@ -10,6 +10,7 @@ import PatientDisplayPage from './pages/display-petient/PatientDisplayPage';
 import WardBedManagement from './pages/bedcollection/WardBedManagement';
 
 import CreatePatientPage from './pages/forms/CreatePatientPage';
+import HubDashboard from './pages/HubDashboard';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/patients/edit/:id" element={<EditPatientPage />} />
         <Route path="/patients/view/:id" element={<PatientDisplayPage />} />
         <Route path="/ward-management" element={<WardBedManagement />} />
+        <Route path="/hub-dashboard" element={<HubDashboard />} />
       </Routes>
     </BrowserRouter>
   );

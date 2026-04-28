@@ -18,10 +18,10 @@ function DashboardPage() {
     if (user.role?.name === 'Doctor') {
       navigate('/doctor-dashboard');
     } else if (user.role?.name === 'Hospital_staff' || user.role?.name === 'Hospital Staff') {
-      navigate('/staff-dashboard');
-    } 
+      navigate('/hub-dashboard');
+    }
     else if (user.role?.name === 'Administrator') {
-      navigate('/admin-dashboard');
+      navigate('/hub-dashboard');
     }else {
       alert('Unknown user role');
       navigate('/login');

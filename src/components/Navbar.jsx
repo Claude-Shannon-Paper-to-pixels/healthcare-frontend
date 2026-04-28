@@ -13,9 +13,9 @@ function Navbar({ user }) {
   const handlePortalClick = () => {
     const role = user?.role?.name || '';
     // Normalize some common role names
-    if (role === 'Administrator') return navigate('/admin-dashboard');
+    if (role === 'Administrator') return navigate('/hub-dashboard');
     if (role === 'Doctor') return navigate('/doctor-dashboard');
-    if (role === 'Hospital_staff' || role === 'Hospital Staff' || role === 'Hospital_staff') return navigate('/staff-dashboard');
+    if (role === 'Hospital_staff' || role === 'Hospital Staff') return navigate('/hub-dashboard');
     // fallback
     navigate('/dashboard');
   };
