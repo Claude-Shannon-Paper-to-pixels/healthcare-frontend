@@ -33,7 +33,10 @@ export async function getAddOnProcedures(filters = {}) {
           'Procedures_patient.mrn',
           'user_created.id',
           'user_created.first_name',
-          'user_created.last_name'
+          'user_created.last_name',
+          'indication_for_additional_procedures',
+          'authorizer_remarks',
+          'status'
         ],
         filter: filters,
         sort: ['-date_created'],
@@ -63,7 +66,10 @@ export async function getAddOnProcedure(id) {
           'Procedures_patient.mrn',
           'user_created.id',
           'user_created.first_name',
-          'user_created.last_name'
+          'user_created.last_name',
+          'indication_for_additional_procedures',
+          'authorizer_remarks',
+          'status'
         ]
       })
     );
@@ -90,7 +96,10 @@ export async function getAddOnProceduresByPatient(patientId) {
           'Procedures_patient.mrn',
           'user_created.id',
           'user_created.first_name',
-          'user_created.last_name'
+          'user_created.last_name',
+          'indication_for_additional_procedures',
+          'authorizer_remarks',
+          'status'
         ],
         filter: {
           Procedures_patient: {

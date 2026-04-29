@@ -1,3 +1,10 @@
+const STATUS_COLORS = {
+  Approved: { background: '#dcfce7', color: '#15803d' },
+  Declined: { background: '#fee2e2', color: '#dc2626' },
+  Canceled: { background: '#f1f5f9', color: '#64748b' },
+  Processing: { background: '#dbeafe', color: '#1d4ed8' }
+};
+
 function AddOnProceduresDetails({ procedures = [], loading = false, error = '' }) {
   const formatDate = (value) => {
     if (!value) return 'N/A';
@@ -67,6 +74,34 @@ function AddOnProceduresDetails({ procedures = [], loading = false, error = '' }
               <span className="detail-label">Created By</span>
               <span className="detail-value">{resolveCreatedBy(procedure)}</span>
             </div>
+            <div className="detail-item">
+              <span className="detail-label">Status</span>
+              <span
+                className="detail-value"
+                style={{
+                  display: 'inline-block',
+                  padding: '2px 10px',
+                  borderRadius: '999px',
+                  fontSize: '0.85rem',
+                  fontWeight: '600',
+                  ...(STATUS_COLORS[procedure.status] || { background: '#f1f5f9', color: '#64748b' })
+                }}
+              >
+                {procedure.status || 'N/A'}
+              </span>
+            </div>
+            {procedure.indication_for_additional_procedures && (
+              <div className="detail-item" style={{ gridColumn: '1 / -1' }}>
+                <span className="detail-label">Indication for Additional Procedures</span>
+                <span className="detail-value">{procedure.indication_for_additional_procedures}</span>
+              </div>
+            )}
+            {procedure.authorizer_remarks && (
+              <div className="detail-item" style={{ gridColumn: '1 / -1' }}>
+                <span className="detail-label">Authorizer Remarks</span>
+                <span className="detail-value">{procedure.authorizer_remarks}</span>
+              </div>
+            )}
           </div>
         </div>
       ))}
