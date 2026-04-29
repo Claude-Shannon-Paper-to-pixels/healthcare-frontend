@@ -47,7 +47,14 @@ function StaffDashboard() {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [expandedIglCells, setExpandedIglCells] = useState(new Set());
   // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
-  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => new Map());
+  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => {
+    try {
+      const saved = localStorage.getItem("iglStatusTimestamps");
+      return saved ? new Map(JSON.parse(saved)) : new Map();
+    } catch {
+      return new Map();
+    }
+  });
   const [addOnModalOpen, setAddOnModalOpen] = useState(false);
   const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
 
@@ -78,6 +85,15 @@ function StaffDashboard() {
 
     fetchPatients();
   }, [user, initializing]);
+
+  const saveTimestamp = (insuranceId) => {
+    setIglStatusTimestamps((prev) => {
+      const next = new Map(prev);
+      next.set(insuranceId, new Date().toISOString());
+      localStorage.setItem("iglStatusTimestamps", JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -354,7 +370,7 @@ function StaffDashboard() {
         })
       );
       
-      setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedInsurance.id, new Date()); return next; });
+      saveTimestamp(selectedInsurance.id);
       setIglModalOpen(false);
       setSelectedInsurance(null);
       setSelectedIglPatient(null);
@@ -399,7 +415,7 @@ function StaffDashboard() {
           return patient;
         })
       );
-      setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedDefermentInsurance.id, new Date()); return next; });
+      saveTimestamp(selectedDefermentInsurance.id);
       // Keep modal open so the user can see the email send status; update insurance state to reflect the new status
       setSelectedDefermentInsurance(prev => prev ? { ...prev, IGL_status: 'Deferment Replied' } : prev);
     } catch (err) {
@@ -525,11 +541,11 @@ function StaffDashboard() {
 
                     return (
                       <React.Fragment key={patient.id}>
-                        <tr className={isExpanded ? 'row-expanded' : ''}>
+                        <tr className={isExpanded ? "row-expanded" : ""}>
                           <td className="td-expand">
                             <button
                               type="button"
-                              className={`expand-btn${isExpanded ? ' expanded' : ''}`}
+                              className={`expand-btn${isExpanded ? " expanded" : ""}`}
                               onClick={() => {
                                 const newExpanded = new Set(expandedRows);
                                 if (isExpanded) {
@@ -539,15 +555,29 @@ function StaffDashboard() {
                                 }
                                 setExpandedRows(newExpanded);
                               }}
-                              title={isExpanded ? 'Collapse' : 'Expand'}
+                              title={isExpanded ? "Collapse" : "Expand"}
                             >
-                                <svg className={`expand-icon ${isExpanded ? 'rotated' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                                  <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor" />
-                                </svg>
+                              <svg
+                                className={`expand-icon ${isExpanded ? "rotated" : ""}`}
+                                width="12"
+                                height="12"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden
+                              >
+                                <path
+                                  d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+                                  fill="currentColor"
+                                />
+                              </svg>
                             </button>
                           </td>
                           <td className="sticky-col">
-                            <span className="patient-name" title={patient.patient_name}>
+                            <span
+                              className="patient-name"
+                              title={patient.patient_name}
+                            >
                               <strong>{patient.patient_name}</strong>
                             </span>
                           </td>
@@ -568,10 +598,14 @@ function StaffDashboard() {
                                 type="button"
                                 onClick={() => handleOpenAssign(patient)}
                                 disabled={!canAssignBed || assigning}
-                                className={`bed-link${canAssignBed ? '' : ' disabled'}`}
-                                title={canAssignBed ? 'Assign bed' : 'Admission must be Pending'}
+                                className={`bed-link${canAssignBed ? "" : " disabled"}`}
+                                title={
+                                  canAssignBed
+                                    ? "Assign bed"
+                                    : "Admission must be Pending"
+                                }
                               >
-                                {bed?.bed_no || 'Assign'}
+                                {bed?.bed_no || "Assign"}
                               </button>
                             </div>
                           </td>
@@ -579,11 +613,15 @@ function StaffDashboard() {
                             <button
                               type="button"
                               className="status-button"
-                              onClick={() => handleOpenStatus(patient, admission)}
+                              onClick={() =>
+                                handleOpenStatus(patient, admission)
+                              }
                               disabled={!admission?.id || statusUpdating}
                             >
-                              <span className={`status-badge status-${(admission?.status || 'unknown').replace(/\s+/g, '-')}`}>
-                                {admission?.status || 'N/A'}
+                              <span
+                                className={`status-badge status-${(admission?.status || "unknown").replace(/\s+/g, "-")}`}
+                              >
+                                {admission?.status || "N/A"}
                               </span>
                             </button>
                           </td>
@@ -593,59 +631,221 @@ function StaffDashboard() {
                                 <button
                                   type="button"
                                   className="status-button igl-status-btn"
-                                  onClick={() => handleOpenIglStatus(patient, insurance)}
+                                  onClick={() =>
+                                    handleOpenIglStatus(patient, insurance)
+                                  }
                                   disabled={!insurance?.id || iglUpdating}
                                 >
-                                  <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
-                                    {insurance?.IGL_status || 'N/A'}
+                                  <span
+                                    className={`igl-badge ${(insurance?.IGL_status || "").toLowerCase().replace(/\s+/g, "-")}`}
+                                  >
+                                    {insurance?.IGL_status || "N/A"}
                                   </span>
                                   {iglStatusTimestamps.get(insurance?.id) && (
                                     <span className="igl-status-time">
-                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                                        <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                      <svg
+                                        width="10"
+                                        height="10"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        aria-hidden="true"
+                                      >
+                                        <circle
+                                          cx="12"
+                                          cy="12"
+                                          r="10"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                        />
+                                        <path
+                                          d="M12 6v6l4 2"
+                                          stroke="currentColor"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                        />
                                       </svg>
-                                      {formatDateTime(iglStatusTimestamps.get(insurance.id))}
+                                      {formatDateTime(
+                                        new Date(
+                                          iglStatusTimestamps.get(
+                                            insurance?.id,
+                                          ),
+                                        ),
+                                      )}
                                     </span>
                                   )}
                                 </button>
-                                {insurance?.id && ['Approved', 'Declined', 'Deferment', 'Deferment Replied'].includes(insurance?.IGL_status) && (
-                                  <button
-                                    type="button"
-                                    className="igl-expand-btn"
-                                    onClick={() => toggleIglCell(insurance.id)}
-                                    aria-label="Toggle IGL details"
-                                  >
-                                    <svg className={`igl-chevron${expandedIglCells.has(insurance.id) ? ' expanded' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                      <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/>
-                                    </svg>
-                                  </button>
-                                )}
+                                {insurance?.id &&
+                                  [
+                                    "Approved",
+                                    "Declined",
+                                    "Deferment",
+                                    "Deferment Replied",
+                                  ].includes(insurance?.IGL_status) && (
+                                    <button
+                                      type="button"
+                                      className="igl-expand-btn"
+                                      onClick={() =>
+                                        toggleIglCell(insurance.id)
+                                      }
+                                      aria-label="Toggle IGL details"
+                                    >
+                                      <svg
+                                        className={`igl-chevron${expandedIglCells.has(insurance.id) ? " expanded" : ""}`}
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        aria-hidden="true"
+                                      >
+                                        <path
+                                          d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"
+                                          fill="currentColor"
+                                        />
+                                      </svg>
+                                    </button>
+                                  )}
                               </div>
                               {expandedIglCells.has(insurance?.id) && (
                                 <div className="igl-expand-panel">
                                   <div className="igl-expand-docs">
-                                    {insurance?.IGL_status === 'Approved' && (
-                                      <button type="button" className="igl-letter-btn igl-letter-approved" onClick={() => window.open('/approved.pdf', '_blank')}>
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                    {insurance?.IGL_status === "Approved" && (
+                                      <button
+                                        type="button"
+                                        className="igl-letter-btn igl-letter-approved"
+                                        onClick={() =>
+                                          window.open("/approved.pdf", "_blank")
+                                        }
+                                      >
+                                        <svg
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                          <path
+                                            d="M14 2v6h6M9 13h6M9 17h6M9 9h1"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
                                         View GL
                                       </button>
                                     )}
-                                    {insurance?.IGL_status === 'Declined' && (
-                                      <button type="button" className="igl-letter-btn igl-letter-declined" onClick={() => window.open('/declined.pdf', '_blank')}>
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                    {insurance?.IGL_status === "Declined" && (
+                                      <button
+                                        type="button"
+                                        className="igl-letter-btn igl-letter-declined"
+                                        onClick={() =>
+                                          window.open("/declined.pdf", "_blank")
+                                        }
+                                      >
+                                        <svg
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                          <path
+                                            d="M14 2v6h6M9 13h6M9 17h6M9 9h1"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
                                         View Denial
                                       </button>
                                     )}
-                                    {insurance?.IGL_status === 'Deferment' && (
-                                      <button type="button" className="igl-letter-btn igl-letter-deferment" onClick={() => handleOpenDeferment(patient, insurance)}>
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                    {insurance?.IGL_status === "Deferment" && (
+                                      <button
+                                        type="button"
+                                        className="igl-letter-btn igl-letter-deferment"
+                                        onClick={() =>
+                                          handleOpenDeferment(
+                                            patient,
+                                            insurance,
+                                          )
+                                        }
+                                      >
+                                        <svg
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                          <path
+                                            d="M14 2v6h6M9 13h6M9 17h6M9 9h1"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
                                         View Deferment
                                       </button>
                                     )}
-                                    {insurance?.IGL_status === 'Deferment Replied' && (
-                                      <button type="button" className="igl-letter-btn igl-letter-deferment-replied" onClick={() => handleOpenDeferment(patient, insurance)}>
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                    {insurance?.IGL_status ===
+                                      "Deferment Replied" && (
+                                      <button
+                                        type="button"
+                                        className="igl-letter-btn igl-letter-deferment-replied"
+                                        onClick={() =>
+                                          handleOpenDeferment(
+                                            patient,
+                                            insurance,
+                                          )
+                                        }
+                                      >
+                                        <svg
+                                          width="11"
+                                          height="11"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          aria-hidden="true"
+                                        >
+                                          <path
+                                            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          />
+                                          <path
+                                            d="M14 2v6h6M9 13h6M9 17h6M9 9h1"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
                                         View Reply
                                       </button>
                                     )}
@@ -673,22 +873,29 @@ function StaffDashboard() {
                               );
                             })()}
                           </td>
-                          <td className="td-date">{formatDate(admission?.operation_date)}</td>
+                          <td className="td-date">
+                            {formatDate(admission?.operation_date)}
+                          </td>
                           <td className="td-doctor">
                             <div className="doctor-cell">
-                              {admission?.user_created?.first_name || patient.user_created?.first_name ? (
+                              {admission?.user_created?.first_name ||
+                              patient.user_created?.first_name ? (
                                 <>
-                                  {admission?.user_created?.first_name || patient.user_created?.first_name}{' '}
-                                  {admission?.user_created?.last_name || patient.user_created?.last_name}
+                                  {admission?.user_created?.first_name ||
+                                    patient.user_created?.first_name}{" "}
+                                  {admission?.user_created?.last_name ||
+                                    patient.user_created?.last_name}
                                 </>
                               ) : (
-                                'N/A'
+                                "N/A"
                               )}
                             </div>
                           </td>
                           <td className="actions">
                             <button
-                              onClick={() => navigate(`/patients/view/${patient.id}`)}
+                              onClick={() =>
+                                navigate(`/patients/view/${patient.id}`)
+                              }
                               className="btn-view"
                             >
                               View
@@ -700,40 +907,70 @@ function StaffDashboard() {
                             <td colSpan="12">
                               <div className="expanded-details">
                                 <div className="detail-item">
-                                  <span className="detail-label">Insurance</span>
-                                  <span className="detail-value">{insuranceLabel}</span>
+                                  <span className="detail-label">
+                                    Insurance
+                                  </span>
+                                  <span className="detail-value">
+                                    {insuranceLabel}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
-                                  <span className="detail-label">Policy No</span>
-                                  <span className="detail-value">{insurance?.Policy_No || 'N/A'}</span>
+                                  <span className="detail-label">
+                                    Policy No
+                                  </span>
+                                  <span className="detail-value">
+                                    {insurance?.Policy_No || "N/A"}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
-                                  <span className="detail-label">IGL Number</span>
-                                  <span className="detail-value">{insurance?.IGL_number || 'N/A'}</span>
+                                  <span className="detail-label">
+                                    IGL Number
+                                  </span>
+                                  <span className="detail-value">
+                                    {insurance?.IGL_number || "N/A"}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
-                                  <span className="detail-label">Admission Date</span>
-                                  <span className="detail-value">{formatDate(admission?.admission_date)}</span>
+                                  <span className="detail-label">
+                                    Admission Date
+                                  </span>
+                                  <span className="detail-value">
+                                    {formatDate(admission?.admission_date)}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
-                                  <span className="detail-label">Operation Time</span>
-                                  <span className="detail-value">{formatTime(admission?.operation_time)}</span>
+                                  <span className="detail-label">
+                                    Operation Time
+                                  </span>
+                                  <span className="detail-value">
+                                    {formatTime(admission?.operation_time)}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
                                   <span className="detail-label">Ward</span>
-                                  <span className="detail-value">{bed?.select_ward?.ward_name || 'N/A'}</span>
+                                  <span className="detail-value">
+                                    {bed?.select_ward?.ward_name || "N/A"}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
                                   <span className="detail-label">Bed No</span>
-                                  <span className="detail-value">{bed?.bed_no || 'N/A'}</span>
+                                  <span className="detail-value">
+                                    {bed?.bed_no || "N/A"}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
-                                  <span className="detail-label">Bed Status</span>
-                                  <span className="detail-value">{bed?.Status || 'N/A'}</span>
+                                  <span className="detail-label">
+                                    Bed Status
+                                  </span>
+                                  <span className="detail-value">
+                                    {bed?.Status || "N/A"}
+                                  </span>
                                 </div>
                                 <div className="detail-item">
                                   <span className="detail-label">Created</span>
-                                  <span className="detail-value">{formatDate(patient.date_created)}</span>
+                                  <span className="detail-value">
+                                    {formatDate(patient.date_created)}
+                                  </span>
                                 </div>
                               </div>
                             </td>
