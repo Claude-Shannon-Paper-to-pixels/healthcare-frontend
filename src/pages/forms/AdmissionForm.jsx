@@ -19,6 +19,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
     admission_to: '',
     type_of_accommodation: '',
     financial_class: '',
+    gl_service: '',
     diagnosis: '',
     operation_date: '',
     operation_time: '',
@@ -145,6 +146,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
 
   const validate = () => {
     const newErrors = {};
+    if (!admissionData.gl_service) newErrors.gl_service = 'GL Service is required';
     if (!admissionData.status) newErrors.status = 'Status is required';
     if (!admissionData.admission_date) newErrors.admission_date = 'Admission date is required';
     if (!admissionData.admission_time) newErrors.admission_time = 'Admission time is required';
@@ -179,6 +181,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
       // is set from the Patient side (patient_Admission field)
       const submissionData = {
         Patient: [{ id: patientId }],
+        gl_service: admissionData.gl_service || null,
         status: admissionData.status,
         admission_category: admissionData.admission_category || null,
         admission_date: admissionData.admission_date,
@@ -384,7 +387,40 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
         
         {/* Admission Details */}
         <h3 style={styles.subTitle}>Admission Details</h3>
-        
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>
+            GL Service <span style={styles.required}>*</span>
+          </label>
+          <div style={styles.radioGroup}>
+            <label style={styles.radioLabel}>
+              <input
+                type="radio"
+                name="gl_service"
+                value="in_patient"
+                checked={admissionData.gl_service === 'in_patient'}
+                onChange={handleChange}
+                style={styles.radio}
+                disabled={loading}
+              />
+              In Patient
+            </label>
+            <label style={styles.radioLabel}>
+              <input
+                type="radio"
+                name="gl_service"
+                value="out_patient"
+                checked={admissionData.gl_service === 'out_patient'}
+                onChange={handleChange}
+                style={styles.radio}
+                disabled={loading}
+              />
+              Out Patient
+            </label>
+          </div>
+          {errors.gl_service && <span style={styles.errorMessage}>{errors.gl_service}</span>}
+        </div>
+
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
             <label style={styles.label}>

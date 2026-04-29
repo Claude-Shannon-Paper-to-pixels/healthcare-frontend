@@ -35,10 +35,11 @@ export async function getPatients(filters = {}) {
           // Related: Admission (get the latest/active admission)
           'patient_Admission.id',
           'patient_Admission.status',
+          'patient_Admission.gl_service',
           'patient_Admission.admission_date',
           'patient_Admission.operation_date',
           'patient_Admission.operation_time',
-          
+
           // Related: Insurance
           'insurance.id',
           'insurance.tpa_name',
@@ -86,6 +87,7 @@ export async function getPatientsByName(query, limit = 20) {
           'patient_bed.select_ward.ward_name',
           'patient_Admission.id',
           'patient_Admission.status',
+          'patient_Admission.gl_service',
           'patient_Admission.admission_date',
           'patient_Admission.operation_date',
           'patient_Admission.operation_time',

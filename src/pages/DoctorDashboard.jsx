@@ -360,6 +360,7 @@ function DoctorDashboard() {
                 <tr>
                   <th className="th-expand"></th>
                   <th className="sticky-col">Patient Name</th>
+                  <th>GL Service</th>
                   <th>MRN</th>
                   <th>Bed No</th>
                   <th>Insurance</th>
@@ -373,7 +374,7 @@ function DoctorDashboard() {
               <tbody>
                 {filteredPatients.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="text-center">
+                    <td colSpan="11" className="text-center">
                       No patients found.
                     </td>
                   </tr>
@@ -413,6 +414,15 @@ function DoctorDashboard() {
                             <span className="patient-name" title={patient.patient_name}>
                               <strong>{patient.patient_name}</strong>
                             </span>
+                          </td>
+                          <td>
+                            {admission?.gl_service === 'in_patient' && (
+                              <span className="status-badge status-Admitted">In Patient</span>
+                            )}
+                            {admission?.gl_service === 'out_patient' && (
+                              <span className="status-badge status-KIV-Discharged">Out Patient</span>
+                            )}
+                            {!admission?.gl_service && <span>N/A</span>}
                           </td>
                           <td className="td-mrn">{patient.mrn}</td>
                           <td className="td-bed">{bed?.bed_no || 'N/A'}</td>
@@ -509,7 +519,7 @@ function DoctorDashboard() {
                         </tr>
                         {isExpanded && (
                           <tr className="expanded-details-row">
-                            <td colSpan="10">
+                            <td colSpan="11">
                               <div className="expanded-details">
                                 <div className="detail-item">
                                   <span className="detail-label">Insurance</span>
