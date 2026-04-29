@@ -92,6 +92,31 @@ function StaffDashboard() {
     });
   };
 
+  const sendTelegramNotification = async (patientName, newStatus) => {
+    const BOT_TOKEN = "8768105862:AAHdryyODCWHMxm34RQEEr5iq1fuh-EsMPA"; // ← paste your token here
+    const CHAT_ID = "5882947647"; // ← paste your chat id here
+
+    const message =
+      `🏥 *IGL Status Updated*\n` +
+      `👤 Patient: ${patientName}\n` +
+      `📋 New Status: ${newStatus}\n` +
+      `🕐 Time: ${new Date().toLocaleString("en-GB")}`;
+
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: message,
+          parse_mode: "Markdown",
+        }),
+      });
+    } catch (err) {
+      console.error("Telegram notification failed:", err);
+    }
+  };
+
   const fetchPatients = async () => {
     setLoading(true);
     try {
@@ -346,17 +371,19 @@ function StaffDashboard() {
     setIglUpdating(true);
     setIglError('');
     try {
-      await updatePatientInsurance(selectedInsurance.id, { IGL_status: newStatus });
-      
+      await updatePatientInsurance(selectedInsurance.id, {
+        IGL_status: newStatus,
+      });
+
       // Optimistic update - update local state without full refetch
-      setPatients(prevPatients => 
-        prevPatients.map(patient => {
+      setPatients((prevPatients) =>
+        prevPatients.map((patient) => {
           if (patient.id === selectedIglPatient.id) {
             const updatedInsurance = Array.isArray(patient.insurance)
-              ? patient.insurance.map(ins => 
-                  ins.id === selectedInsurance.id 
+              ? patient.insurance.map((ins) =>
+                  ins.id === selectedInsurance.id
                     ? { ...ins, IGL_status: newStatus }
-                    : ins
+                    : ins,
                 )
               : patient.insurance?.id === selectedInsurance.id
                 ? { ...patient.insurance, IGL_status: newStatus }
@@ -364,10 +391,15 @@ function StaffDashboard() {
             return { ...patient, insurance: updatedInsurance };
           }
           return patient;
-        })
+        }),
       );
-      
+
       saveTimestamp(selectedInsurance.id);
+      // ADD THIS LINE:
+      await sendTelegramNotification(
+        selectedIglPatient.patient_name,
+        newStatus,
+      );
       setIglModalOpen(false);
       setSelectedInsurance(null);
       setSelectedIglPatient(null);
@@ -389,32 +421,41 @@ function StaffDashboard() {
     if (!selectedDefermentInsurance?.id) return;
     setDefermentUpdating(true);
     try {
-      await updatePatientInsurance(selectedDefermentInsurance.id, { IGL_status: 'Deferment Replied' });
-      setUploadedFilesMap(prev => {
+      await updatePatientInsurance(selectedDefermentInsurance.id, {
+        IGL_status: "Deferment Replied",
+      });
+      setUploadedFilesMap((prev) => {
         const next = new Map(prev);
         next.set(selectedDefermentInsurance.id, file);
         return next;
       });
-      setPatients(prevPatients =>
-        prevPatients.map(patient => {
+      setPatients((prevPatients) =>
+        prevPatients.map((patient) => {
           if (patient.id === selectedDefermentPatient.id) {
             const updatedInsurance = Array.isArray(patient.insurance)
-              ? patient.insurance.map(ins =>
+              ? patient.insurance.map((ins) =>
                   ins.id === selectedDefermentInsurance.id
-                    ? { ...ins, IGL_status: 'Deferment Replied' }
-                    : ins
+                    ? { ...ins, IGL_status: "Deferment Replied" }
+                    : ins,
                 )
               : patient.insurance?.id === selectedDefermentInsurance.id
-                ? { ...patient.insurance, IGL_status: 'Deferment Replied' }
+                ? { ...patient.insurance, IGL_status: "Deferment Replied" }
                 : patient.insurance;
             return { ...patient, insurance: updatedInsurance };
           }
           return patient;
-        })
+        }),
       );
       saveTimestamp(selectedDefermentInsurance.id);
+      // ADD this line after saveTimestamp in handleDefermentSubmit:
+      await sendTelegramNotification(
+        selectedDefermentPatient.patient_name,
+        "Deferment Replied",
+      );
       // Keep modal open so the user can see the email send status; update insurance state to reflect the new status
-      setSelectedDefermentInsurance(prev => prev ? { ...prev, IGL_status: 'Deferment Replied' } : prev);
+      setSelectedDefermentInsurance((prev) =>
+        prev ? { ...prev, IGL_status: "Deferment Replied" } : prev,
+      );
     } catch (err) {
       console.error('Failed to update deferment status:', err);
     } finally {
