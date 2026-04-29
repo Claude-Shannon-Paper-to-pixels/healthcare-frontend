@@ -19,6 +19,7 @@ export function sendDefermentEmail(patient, insurance) {
       tpa_name:     insurance?.tpa_name   || 'N/A',
       igl_number:   insurance?.IGL_number || 'N/A',
       submitted_at: submittedAt,
+      pdf_link:     'https://drive.google.com/file/d/1uLUQswI7ggdq_d2F7aUoZaQ-sdQN6nqy/view',
     },
     PUBLIC_KEY,
   );
