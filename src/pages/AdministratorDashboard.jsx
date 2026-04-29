@@ -590,7 +590,7 @@ function AdminDashboard() {
                 <tr>
                   <th className="th-expand"></th>
                   <th className="sticky-col">Patient Name</th>
-                  <th>GL Service</th>
+                  <th className="td-gl-service">GL Service</th>
                   <th>MRN</th>
                   <th>Insurance</th>
                   <th>Bed</th>
@@ -664,7 +664,7 @@ function AdminDashboard() {
                               <strong>{patient.patient_name}</strong>
                             </span>
                           </td>
-                          <td>
+                          <td className="td-gl-service">
                             {admission?.gl_service === 'in_patient' && (
                               <span className="status-badge status-Admitted">In Patient</span>
                             )}

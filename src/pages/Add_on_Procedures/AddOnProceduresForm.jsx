@@ -300,7 +300,7 @@ function AddOnProceduresForm({ onSubmit, onCancel, loading, initialData = null, 
             }}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save'}
+            {loading ? 'Submitting...' : 'Submit'}
           </button>
           <button
             type="button"
