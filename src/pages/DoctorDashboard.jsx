@@ -75,13 +75,14 @@ function DoctorDashboard() {
     });
   };
 
-  const sendTelegramNotification = async (patientName, newStatus) => {
+  const sendTelegramNotification = async (patientName, mrn, newStatus) => {
     const BOT_TOKEN = "8768105862:AAHdryyODCWHMxm34RQEEr5iq1fuh-EsMPA"; // ← paste your token here
     const CHAT_ID = "5882947647"; // ← paste your chat id here
 
     const message =
       `🏥 *IGL Status Updated*\n` +
       `👤 Patient: ${patientName}\n` +
+      `🪪 MRN: ${mrn || "N/A"}\n` +
       `📋 New Status: ${newStatus}\n` +
       `🕐 Time: ${new Date().toLocaleString("en-GB")}`;
 
@@ -354,6 +355,7 @@ function DoctorDashboard() {
       // ADD this line after saveTimestamp in handleDefermentSubmit:
       await sendTelegramNotification(
         selectedDefermentPatient.patient_name,
+        selectedDefermentPatient.mrn,
         "Deferment Replied",
       );
       // Keep modal open so the user can see the email send status; update insurance state to reflect the new status
