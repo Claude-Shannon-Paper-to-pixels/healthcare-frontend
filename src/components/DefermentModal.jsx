@@ -28,7 +28,10 @@ function DefermentModal({ isOpen, patient, insurance, uploadedFile, onClose, onS
     setEmailStatus('sending');
     sendDefermentEmail(patient, insurance)
       .then(() => setEmailStatus('sent'))
-      .catch(() => setEmailStatus('failed'));
+      .catch((err) => {
+        console.error('[DefermentEmail] failed:', err);
+        setEmailStatus('failed');
+      });
   };
 
   if (!isOpen) return null;
