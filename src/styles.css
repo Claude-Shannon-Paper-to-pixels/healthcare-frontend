@@ -366,6 +366,11 @@ body {
   flex-shrink: 0;
 }
 
+/* GL Service Column */
+.td-gl-service {
+  text-align: center;
+}
+
 /* MRN Column Styling */
 .td-mrn {
   font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;

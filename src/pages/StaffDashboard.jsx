@@ -9,6 +9,7 @@ import AssignBedModal from './bedcollection/AssignBedModal';
 import AdmissionStatusModal from '../components/AdmissionStatusModal';
 import IglStatusModal from '../components/IglStatusModal';
 import DefermentModal from '../components/DefermentModal';
+import AddOnStatusModal from '../components/AddOnStatusModal';
 import IglStatusPieChart from './charts/IglStatusPieChart';
 import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
@@ -54,6 +55,8 @@ function StaffDashboard() {
       return new Map();
     }
   });
+  const [addOnModalOpen, setAddOnModalOpen] = useState(false);
+  const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
@@ -500,6 +503,11 @@ function StaffDashboard() {
     }
   };
 
+  const handleOpenAddOnModal = (patient) => {
+    setSelectedAddOnPatient(patient);
+    setAddOnModalOpen(true);
+  };
+
   if (!user) return <div className="loading">Loading...</div>;
 
   return (
@@ -546,11 +554,13 @@ function StaffDashboard() {
                 <tr>
                   <th className="th-expand"></th>
                   <th className="sticky-col">Patient Name</th>
+                  <th className="td-gl-service">GL Service</th>
                   <th>MRN</th>
                   <th>Insurance</th>
                   <th>Bed</th>
                   <th>Admission Status</th>
                   <th>IGL Status</th>
+                  <th>Add-on Status</th>
                   <th>Operation Date</th>
                   <th>Doctor</th>
                   <th>Actions</th>
@@ -559,7 +569,7 @@ function StaffDashboard() {
               <tbody>
                 {filteredPatients.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center">
+                    <td colSpan="12" className="text-center">
                       No patients found.
                     </td>
                   </tr>
@@ -614,6 +624,15 @@ function StaffDashboard() {
                             >
                               <strong>{patient.patient_name}</strong>
                             </span>
+                          </td>
+                          <td className="td-gl-service">
+                            {admission?.gl_service === 'in_patient' && (
+                              <span className="status-badge status-Admitted">In Patient</span>
+                            )}
+                            {admission?.gl_service === 'out_patient' && (
+                              <span className="status-badge status-KIV-Discharged">Out Patient</span>
+                            )}
+                            {!admission?.gl_service && <span>N/A</span>}
                           </td>
                           <td className="td-mrn">{patient.mrn}</td>
                           <td className="td-insurance">{insuranceLabel}</td>
@@ -879,6 +898,25 @@ function StaffDashboard() {
                               )}
                             </div>
                           </td>
+                          <td>
+                            {(() => {
+                              const procs = Array.isArray(patient.Add_on_Procedures)
+                                ? patient.Add_on_Procedures
+                                : (patient.Add_on_Procedures ? [patient.Add_on_Procedures] : []);
+                              if (!procs.length) return <span style={{ color: '#94a3b8' }}>—</span>;
+                              return (
+                                <button
+                                  type="button"
+                                  className="status-button"
+                                  onClick={() => handleOpenAddOnModal(patient)}
+                                >
+                                  <span className="igl-badge under-review">
+                                    {procs.length} Procedure{procs.length !== 1 ? 's' : ''}
+                                  </span>
+                                </button>
+                              );
+                            })()}
+                          </td>
                           <td className="td-date">
                             {formatDate(admission?.operation_date)}
                           </td>
@@ -910,7 +948,7 @@ function StaffDashboard() {
                         </tr>
                         {isExpanded && (
                           <tr className="expanded-details-row">
-                            <td colSpan="10">
+                            <td colSpan="12">
                               <div className="expanded-details">
                                 <div className="detail-item">
                                   <span className="detail-label">
@@ -1050,6 +1088,20 @@ function StaffDashboard() {
         }}
         onSubmit={handleDefermentSubmit}
         loading={defermentUpdating}
+      />
+
+      <AddOnStatusModal
+        isOpen={addOnModalOpen}
+        patient={selectedAddOnPatient}
+        procedures={
+          Array.isArray(selectedAddOnPatient?.Add_on_Procedures)
+            ? selectedAddOnPatient.Add_on_Procedures
+            : (selectedAddOnPatient?.Add_on_Procedures ? [selectedAddOnPatient.Add_on_Procedures] : [])
+        }
+        onClose={() => {
+          setAddOnModalOpen(false);
+          setSelectedAddOnPatient(null);
+        }}
       />
 
       {assignError && <div className="error-message">{assignError}</div>}

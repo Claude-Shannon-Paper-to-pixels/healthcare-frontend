@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { initAuth } from '../../api/auth';
 import { updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
 import { createReferralLetter } from '../../api/Referralletter';
-import { createAddOnProcedure } from '../../api/addOnProcedures';
+import { createAddOnProcedure, updateAddOnProcedure } from '../../api/addOnProcedures';
+import { sendAddOnEmail } from '../../utils/sendAddOnEmail';
 import { isAdmin, isDoctor, isStaff } from '../../utils/auth';
 import directus from '../../api/directus';
 import { createItem } from '@directus/sdk';
@@ -33,6 +34,7 @@ import './displayPatient.css';
 function PatientDisplayPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [savingSection, setSavingSection] = useState(null);
   const [editingSection, setEditingSection] = useState(null);
@@ -46,7 +48,7 @@ function PatientDisplayPage() {
   const [aiAnalysisData, setAiAnalysisData] = useState(null);
   const [showAiModal, setShowAiModal] = useState(false);
   const [showPafModal, setShowPafModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(location.state?.initialTab || 'overview');
   const [patientSearch, setPatientSearch] = useState('');
   const [admissionSearch, setAdmissionSearch] = useState('');
   const [insuranceSearch, setInsuranceSearch] = useState('');
@@ -71,6 +73,8 @@ function PatientDisplayPage() {
     refresh: refreshAddOnProcedures,
     setError: setAddOnError
   } = useAddOnProcedures(id, Boolean(user));
+
+  const [addOnEmailStatus, setAddOnEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'failed'
 
   // Local page error state (separate from hook-provided errors)
   const [error, setError] = useState('');
@@ -659,6 +663,15 @@ function PatientDisplayPage() {
     }
   };
 
+  const handleUpdateAddOnStatus = async (procedureId, newStatus) => {
+    try {
+      await updateAddOnProcedure(procedureId, { status: newStatus });
+      await refreshAddOnProcedures();
+    } catch (err) {
+      setAddOnError(err.message || 'Failed to update status');
+    }
+  };
+
   const handleCreateAddOnProcedure = async (formData) => {
     setSavingSection('create-add-on');
     setAddOnError('');
@@ -666,6 +679,10 @@ function PatientDisplayPage() {
       await createAddOnProcedure(formData);
       setShowCreateAddOn(false);
       await refreshAddOnProcedures();
+      setAddOnEmailStatus('sending');
+      sendAddOnEmail(patient, insurance, formData)
+        .then(() => setAddOnEmailStatus('sent'))
+        .catch(() => setAddOnEmailStatus('failed'));
     } catch (err) {
       setAddOnError(err.message || 'Failed to create add-on procedure');
     } finally {
@@ -811,10 +828,12 @@ function PatientDisplayPage() {
             addOnError={addOnError}
             canManageClinical={canManageClinical}
             showCreateAddOn={showCreateAddOn}
-            setShowCreateAddOn={setShowCreateAddOn}
+            setShowCreateAddOn={(val) => { setShowCreateAddOn(val); if (val) setAddOnEmailStatus('idle'); }}
             handleCreateAddOnProcedure={handleCreateAddOnProcedure}
             savingSection={savingSection}
             patientId={patient.id}
+            addOnEmailStatus={addOnEmailStatus}
+            onStatusChange={handleUpdateAddOnStatus}
           />
         )}
 

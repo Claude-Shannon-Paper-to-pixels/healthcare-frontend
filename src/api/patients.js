@@ -35,16 +35,23 @@ export async function getPatients(filters = {}) {
           // Related: Admission (get the latest/active admission)
           'patient_Admission.id',
           'patient_Admission.status',
+          'patient_Admission.gl_service',
           'patient_Admission.admission_date',
           'patient_Admission.operation_date',
           'patient_Admission.operation_time',
-          
+
           // Related: Insurance
           'insurance.id',
           'insurance.tpa_name',
           'insurance.IGL_status',
           'insurance.Policy_No',
-          'insurance.IGL_number'
+          'insurance.IGL_number',
+
+          // Related: Add-on Procedures (for dashboard status column)
+          'Add_on_Procedures.id',
+          'Add_on_Procedures.status',
+          'Add_on_Procedures.procedure_description',
+          'Add_on_Procedures.plan_date'
         ],
         filter: filters,
         limit: -1,
@@ -86,6 +93,7 @@ export async function getPatientsByName(query, limit = 20) {
           'patient_bed.select_ward.ward_name',
           'patient_Admission.id',
           'patient_Admission.status',
+          'patient_Admission.gl_service',
           'patient_Admission.admission_date',
           'patient_Admission.operation_date',
           'patient_Admission.operation_time',
@@ -93,7 +101,11 @@ export async function getPatientsByName(query, limit = 20) {
           'insurance.tpa_name',
           'insurance.IGL_status',
           'insurance.Policy_No',
-          'insurance.IGL_number'
+          'insurance.IGL_number',
+          'Add_on_Procedures.id',
+          'Add_on_Procedures.status',
+          'Add_on_Procedures.procedure_description',
+          'Add_on_Procedures.plan_date'
         ],
         filter: {
           _or: [
