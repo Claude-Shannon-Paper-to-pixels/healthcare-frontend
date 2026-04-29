@@ -60,27 +60,48 @@ export default function GeneratePafModal({
     }
   };
 
-  const handleSendPAF = async () => {
-    setEmailSending(true);
-    setEmailError("");
-    try {
-      await emailjs.send(
-        "service_tfro8yd",
-        "template_6vzyd6g",
-        {
-          patient_name: patient?.patient_name || "N/A",
-          mrn: patient?.mrn || "N/A",
-          pdf_url: pdfUrl,
-        },
-        "_Otw8N2Z4ejOX05uN",
-      );
-      setEmailSuccess(true);
-    } catch (err) {
-      setEmailError("Failed to send email. Please try again.");
-    } finally {
-      setEmailSending(false);
-    }
-  };
+ const handleSendPAF = async () => {
+   setEmailSending(true);
+   setEmailError("");
+   try {
+     await emailjs.send(
+       "service_tfro8yd",
+       "template_6vzyd6g",
+       {
+         patient_name: patient?.patient_name || "N/A",
+         mrn: patient?.mrn || "N/A",
+         pdf_url: pdfUrl,
+       },
+       "_Otw8N2Z4ejOX05uN",
+     );
+
+     // Save timestamp to localStorage using insurance id
+     if (insurance?.id) {
+       try {
+         const saved = localStorage.getItem("iglStatusTimestamps");
+         const existing = saved ? new Map(JSON.parse(saved)) : new Map();
+         existing.set(insurance.id, new Date().toISOString());
+         localStorage.setItem(
+           "iglStatusTimestamps",
+           JSON.stringify([...existing]),
+         );
+       } catch {
+         // ignore storage errors
+       }
+     }
+
+     setEmailSuccess(true);
+     setTimeout(() => {
+       setEmailSuccess(false);
+       reset();
+       onClose();
+     }, 3000);
+   } catch (err) {
+     setEmailError("Failed to send email. Please try again.");
+   } finally {
+     setEmailSending(false);
+   }
+ };
 
   // Determine button label based on current phase
   const getButtonLabel = () => {
