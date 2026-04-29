@@ -1,8 +1,8 @@
 import emailjs from '@emailjs/browser';
 
-const SERVICE_ID  = 'service_tfro8yd';
-const TEMPLATE_ID = 'template_REPLACE_ME';
-const PUBLIC_KEY  = '_Otw8N2Z4ejOX05uN';
+const SERVICE_ID  = 'service_i7hgyj8';
+const TEMPLATE_ID = 'template_sc6i5ln';
+const PUBLIC_KEY  = 'ZwzgProMETapIV5yn';
 
 export function sendAddOnEmail(patient, insurance, procedureData) {
   const submittedAt = new Date().toLocaleString('en-GB', {
