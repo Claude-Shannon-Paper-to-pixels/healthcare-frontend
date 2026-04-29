@@ -397,9 +397,8 @@ function StaffDashboard() {
         })
       );
       setIglStatusTimestamps(prev => { const next = new Map(prev); next.set(selectedDefermentInsurance.id, new Date()); return next; });
-      setDefermentModalOpen(false);
-      setSelectedDefermentInsurance(null);
-      setSelectedDefermentPatient(null);
+      // Keep modal open so the user can see the email send status; update insurance state to reflect the new status
+      setSelectedDefermentInsurance(prev => prev ? { ...prev, IGL_status: 'Deferment Replied' } : prev);
     } catch (err) {
       console.error('Failed to update deferment status:', err);
     } finally {

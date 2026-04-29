@@ -1,16 +1,7 @@
 import emailjs from '@emailjs/browser';
 
-// Reuses the same EmailJS service as PAF submission (service_tfro8yd / _Otw8N2Z4ejOX05uN).
-// Recipient email is configured in the EmailJS template on emailjs.com — not in frontend code.
-//
-// Required EmailJS template variables: patient_name, mrn, tpa_name, igl_number, submitted_at
-//
-// NOTE (demo): Browser File objects cannot be attached directly — they are local-only and
-// have no accessible URL. When a real backend is available, store the file in Directus first,
-// then pass the resulting URL as an attachment_url template variable instead.
-
 const SERVICE_ID  = 'service_tfro8yd';
-const TEMPLATE_ID = 'template_deferment_reply';
+const TEMPLATE_ID = 'template_lhv4haj';
 const PUBLIC_KEY  = '_Otw8N2Z4ejOX05uN';
 
 export function sendDefermentEmail(patient, insurance) {
