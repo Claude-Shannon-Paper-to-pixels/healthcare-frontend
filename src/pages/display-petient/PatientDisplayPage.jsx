@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { initAuth } from '../../api/auth';
 import { updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
 import { createReferralLetter } from '../../api/Referralletter';
@@ -33,6 +33,7 @@ import './displayPatient.css';
 function PatientDisplayPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [savingSection, setSavingSection] = useState(null);
   const [editingSection, setEditingSection] = useState(null);
@@ -46,7 +47,7 @@ function PatientDisplayPage() {
   const [aiAnalysisData, setAiAnalysisData] = useState(null);
   const [showAiModal, setShowAiModal] = useState(false);
   const [showPafModal, setShowPafModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(location.state?.initialTab || 'overview');
   const [patientSearch, setPatientSearch] = useState('');
   const [admissionSearch, setAdmissionSearch] = useState('');
   const [insuranceSearch, setInsuranceSearch] = useState('');

@@ -8,6 +8,7 @@ import AssignBedModal from './bedcollection/AssignBedModal';
 import AdmissionStatusModal from '../components/AdmissionStatusModal';
 import IglStatusModal from '../components/IglStatusModal';
 import DefermentModal from '../components/DefermentModal';
+import AddOnStatusModal from '../components/AddOnStatusModal';
 import IglStatusPieChart from './charts/IglStatusPieChart';
 import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
@@ -46,16 +47,18 @@ function AdminDashboard() {
   const [expandedIglCells, setExpandedIglCells] = useState(new Set());
   // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
   const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => new Map());
+  const [addOnModalOpen, setAddOnModalOpen] = useState(false);
+  const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
       const authenticatedUser = await initAuth();
-      
+
       if (!authenticatedUser) {
         navigate('/login');
         return;
       }
-      
+
       if (authenticatedUser.role?.name !== 'Administrator') {
         navigate('/dashboard');
         return;
@@ -452,6 +455,11 @@ function AdminDashboard() {
     ];
   }, [filteredPatients]);
 
+  const handleOpenAddOnModal = (patient) => {
+    setSelectedAddOnPatient(patient);
+    setAddOnModalOpen(true);
+  };
+
   if (!user || initializing) return <div className="loading">Loading...</div>;
 
   return (
@@ -512,6 +520,7 @@ function AdminDashboard() {
                   <th>Bed</th>
                   <th>Admission Status</th>
                   <th>IGL Status</th>
+                  <th>Add-on Status</th>
                   <th>Operation Date</th>
                   <th>Doctor</th>
                   <th>Actions</th>
@@ -520,7 +529,7 @@ function AdminDashboard() {
               <tbody>
                 {filteredPatients.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="text-center">
+                    <td colSpan="12" className="text-center">
                       No patients found.
                     </td>
                   </tr>
@@ -668,6 +677,25 @@ function AdminDashboard() {
                               )}
                             </div>
                           </td>
+                          <td>
+                            {(() => {
+                              const procs = Array.isArray(patient.Add_on_Procedures)
+                                ? patient.Add_on_Procedures
+                                : (patient.Add_on_Procedures ? [patient.Add_on_Procedures] : []);
+                              if (!procs.length) return <span style={{ color: '#94a3b8' }}>—</span>;
+                              return (
+                                <button
+                                  type="button"
+                                  className="status-button"
+                                  onClick={() => handleOpenAddOnModal(patient)}
+                                >
+                                  <span className="igl-badge under-review">
+                                    {procs.length} Procedure{procs.length !== 1 ? 's' : ''}
+                                  </span>
+                                </button>
+                              );
+                            })()}
+                          </td>
                           <td className="td-date">{formatDate(admission?.operation_date)}</td>
                           <td className="td-doctor">
                             <div className="doctor-cell">
@@ -682,7 +710,7 @@ function AdminDashboard() {
                             </div>
                           </td>
                           <td className="actions">
-                            <button 
+                            <button
                               onClick={() => navigate(`/patients/view/${patient.id}`)}
                               className="btn-view"
                             >
@@ -692,7 +720,7 @@ function AdminDashboard() {
                         </tr>
                         {isExpanded && (
                           <tr className="expanded-details-row">
-                            <td colSpan="11">
+                            <td colSpan="12">
                               <div className="expanded-details">
                                 <div className="detail-item">
                                   <span className="detail-label">Insurance</span>
@@ -802,6 +830,20 @@ function AdminDashboard() {
         }}
         onSubmit={handleDefermentSubmit}
         loading={defermentUpdating}
+      />
+
+      <AddOnStatusModal
+        isOpen={addOnModalOpen}
+        patient={selectedAddOnPatient}
+        procedures={
+          Array.isArray(selectedAddOnPatient?.Add_on_Procedures)
+            ? selectedAddOnPatient.Add_on_Procedures
+            : (selectedAddOnPatient?.Add_on_Procedures ? [selectedAddOnPatient.Add_on_Procedures] : [])
+        }
+        onClose={() => {
+          setAddOnModalOpen(false);
+          setSelectedAddOnPatient(null);
+        }}
       />
 
       {assignError && <div className="error-message">{assignError}</div>}

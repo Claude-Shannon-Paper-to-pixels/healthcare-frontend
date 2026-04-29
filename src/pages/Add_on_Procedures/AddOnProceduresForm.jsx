@@ -7,7 +7,10 @@ function AddOnProceduresForm({ onSubmit, onCancel, loading, initialData = null, 
     Procedures_patient: initialData?.Procedures_patient?.id || patientId || '',
     plan_date: initialData?.plan_date || new Date().toISOString().split('T')[0],
     estimated_cost: initialData?.estimated_cost || '',
-    procedure_description: initialData?.procedure_description || ''
+    procedure_description: initialData?.procedure_description || '',
+    indication_for_additional_procedures: initialData?.indication_for_additional_procedures || '',
+    authorizer_remarks: initialData?.authorizer_remarks || '',
+    status: initialData?.status || 'Processing'
   });
 
   const [errors, setErrors] = useState({});
@@ -60,7 +63,10 @@ function AddOnProceduresForm({ onSubmit, onCancel, loading, initialData = null, 
         formData.estimated_cost === '' || formData.estimated_cost === null
           ? null
           : parseFloat(formData.estimated_cost),
-      procedure_description: formData.procedure_description
+      procedure_description: formData.procedure_description,
+      indication_for_additional_procedures: formData.indication_for_additional_procedures,
+      authorizer_remarks: formData.authorizer_remarks,
+      status: formData.status
     };
 
     onSubmit(submissionData);
@@ -226,6 +232,59 @@ function AddOnProceduresForm({ onSubmit, onCancel, loading, initialData = null, 
           {errors.estimated_cost && (
             <span style={styles.errorMessage}>{errors.estimated_cost}</span>
           )}
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Indication for Additional Procedures</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <textarea
+              name="indication_for_additional_procedures"
+              value={formData.indication_for_additional_procedures}
+              onChange={handleChange}
+              style={styles.textarea}
+              placeholder="Describe the indication for this additional procedure"
+            />
+            <VoiceInputButton
+              listening={listeningField === 'indication_for_additional_procedures'}
+              onClick={() => toggleListening('indication_for_additional_procedures')}
+              ariaLabel="Voice input for indication"
+              disabled={loading || !recognitionSupported}
+            />
+          </div>
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Authorizer Remarks</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <textarea
+              name="authorizer_remarks"
+              value={formData.authorizer_remarks}
+              onChange={handleChange}
+              style={styles.textarea}
+              placeholder="Remarks from the authorizer"
+            />
+            <VoiceInputButton
+              listening={listeningField === 'authorizer_remarks'}
+              onClick={() => toggleListening('authorizer_remarks')}
+              ariaLabel="Voice input for authorizer remarks"
+              disabled={loading || !recognitionSupported}
+            />
+          </div>
+        </div>
+
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Status</label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
+            style={styles.input}
+          >
+            <option value="Processing">Processing</option>
+            <option value="Approved">Approved</option>
+            <option value="Declined">Declined</option>
+            <option value="Canceled">Canceled</option>
+          </select>
         </div>
 
         {errors.Procedures_patient && (
