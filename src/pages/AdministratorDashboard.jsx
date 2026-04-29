@@ -596,15 +596,24 @@ function AdminDashboard() {
                               <div className="igl-cell-header">
                                 <button
                                   type="button"
-                                  className="status-button"
+                                  className="status-button igl-status-btn"
                                   onClick={() => handleOpenIglStatus(patient, insurance)}
                                   disabled={!insurance?.id || iglUpdating}
                                 >
                                   <span className={`igl-badge ${(insurance?.IGL_status || '').toLowerCase().replace(/\s+/g, '-')}`}>
                                     {insurance?.IGL_status || 'N/A'}
                                   </span>
+                                  {iglStatusTimestamps.get(insurance?.id) && (
+                                    <span className="igl-status-time">
+                                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                                        <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                      </svg>
+                                      {formatDateTime(iglStatusTimestamps.get(insurance.id))}
+                                    </span>
+                                  )}
                                 </button>
-                                {insurance?.id && (
+                                {insurance?.id && ['Approved', 'Declined', 'Deferment', 'Deferment Replied'].includes(insurance?.IGL_status) && (
                                   <button
                                     type="button"
                                     className="igl-expand-btn"
@@ -619,15 +628,6 @@ function AdminDashboard() {
                               </div>
                               {expandedIglCells.has(insurance?.id) && (
                                 <div className="igl-expand-panel">
-                                  <div className="igl-timestamp">
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                                      <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                    </svg>
-                                    {iglStatusTimestamps.get(insurance.id)
-                                      ? formatDateTime(iglStatusTimestamps.get(insurance.id))
-                                      : '—'}
-                                  </div>
                                   <div className="igl-expand-docs">
                                     {insurance?.IGL_status === 'Approved' && (
                                       <button type="button" className="igl-letter-btn igl-letter-approved" onClick={() => window.open('/approved.pdf', '_blank')}>

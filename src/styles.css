@@ -1079,13 +1079,31 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.igl-timestamp {
+/* Modifier applied to status-button when it also shows a timestamp */
+.igl-status-btn {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+/* Timestamp line rendered inside the status button */
+.igl-status-time {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.71rem;
-  color: #64748b;
+  gap: 4px;
+  font-size: 0.67rem;
+  color: #94a3b8;
   font-variant-numeric: tabular-nums;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Read-only stack for Doctor view (badge has no button wrapper) */
+.igl-status-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
 }
 
 .igl-expand-docs {
