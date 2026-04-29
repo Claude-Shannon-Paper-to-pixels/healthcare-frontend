@@ -538,6 +538,7 @@ function AdminDashboard() {
                 <tr>
                   <th className="th-expand"></th>
                   <th className="sticky-col">Patient Name</th>
+                  <th>GL Service</th>
                   <th>MRN</th>
                   <th>Insurance</th>
                   <th>Bed</th>
@@ -551,7 +552,7 @@ function AdminDashboard() {
               <tbody>
                 {filteredPatients.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="text-center">
+                    <td colSpan="11" className="text-center">
                       No patients found.
                     </td>
                   </tr>
@@ -609,6 +610,15 @@ function AdminDashboard() {
                             >
                               <strong>{patient.patient_name}</strong>
                             </span>
+                          </td>
+                          <td>
+                            {admission?.gl_service === 'in_patient' && (
+                              <span className="status-badge status-Admitted">In Patient</span>
+                            )}
+                            {admission?.gl_service === 'out_patient' && (
+                              <span className="status-badge status-KIV-Discharged">Out Patient</span>
+                            )}
+                            {!admission?.gl_service && <span>N/A</span>}
                           </td>
                           <td className="td-mrn">{patient.mrn}</td>
                           <td className="td-insurance">{insuranceLabel}</td>
@@ -907,7 +917,7 @@ function AdminDashboard() {
                         </tr>
                         {isExpanded && (
                           <tr className="expanded-details-row">
-                            <td colSpan="10">
+                            <td colSpan="11">
                               <div className="expanded-details">
                                 <div className="detail-item">
                                   <span className="detail-label">
