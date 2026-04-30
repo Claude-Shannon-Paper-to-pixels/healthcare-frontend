@@ -789,6 +789,7 @@ function AdminDashboard() {
                                         toggleIglCell(insurance.id)
                                       }
                                       aria-label="Toggle IGL details"
+                                      title="View documents"
                                     >
                                       <svg
                                         className={`igl-chevron${expandedIglCells.has(insurance.id) ? " expanded" : ""}`}
