@@ -656,11 +656,7 @@ body {
   font-weight: 600;
 }
 
-.kpi-value {
-  margin: 0;
-  font-size: 1.6rem;
-  color: #0f172a;
-}
+/* .kpi-value is now defined in the KPI Card icons section below */
 
 .chart-card {
   background: #ffffff;
@@ -1751,5 +1747,98 @@ body {
 
 .hub-card-btn:hover {
   background-color: #1a6fa0;
+}
+
+/* ── Dashboard Greeting ──────────────────────────────────── */
+.dashboard-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2c3e50 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 16px 24px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.14);
+}
+
+.greeting-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.greeting-wave {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.greeting-text {
+  font-size: 1.1rem;
+  color: #cbd5e1;
+}
+
+.greeting-text strong {
+  color: #ffffff;
+  font-size: 1.15rem;
+}
+
+.greeting-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.greeting-calendar-icon,
+.greeting-clock-icon {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.greeting-date {
+  color: #cbd5e1;
+}
+
+.greeting-separator {
+  color: #475569;
+  font-size: 1rem;
+}
+
+.greeting-time {
+  color: #38bdf8;
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ── KPI Card icons ──────────────────────────────────────── */
+.kpi-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kpi-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-value {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 

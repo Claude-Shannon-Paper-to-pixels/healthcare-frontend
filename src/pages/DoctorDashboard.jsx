@@ -12,6 +12,7 @@ import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
 import VoiceWidget from './voice/VoiceWidget';
 import KpiCards from './dashboard-widgets/KpiCards';
+import DashboardGreeting from './dashboard-widgets/DashboardGreeting';
 
 function DoctorDashboard() {
   const navigate = useNavigate();
@@ -389,6 +390,7 @@ function DoctorDashboard() {
       <Navbar user={user} />
       
       <div className="page-container">
+        <DashboardGreeting user={user} />
         <div className="page-header">
           <h1>Doctor Dashboard</h1>
           <button 

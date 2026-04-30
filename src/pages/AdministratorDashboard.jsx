@@ -15,6 +15,7 @@ import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
 import VoiceWidget from './voice/VoiceWidget';
 import KpiCards from './dashboard-widgets/KpiCards';
+import DashboardGreeting from './dashboard-widgets/DashboardGreeting';
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -558,6 +559,7 @@ function AdminDashboard() {
       <Navbar user={user} />
       
       <div className="page-container">
+        <DashboardGreeting user={user} />
         <div className="page-header">
           <h1>Administrator Dashboard</h1>
           <div style={{ display: 'flex', gap: '12px' }}>
