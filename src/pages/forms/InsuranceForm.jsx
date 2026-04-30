@@ -601,12 +601,11 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
                 disabled={loading}
               >
                 <option value="">Select IGL Status</option>
-                <option value="pending">Pending</option>
+                <option value="Pending">Pending</option>
                 <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
                 <option value="Deferment">Deferment</option>
-                <option value="Not Found">Not Found</option>
-                <option value="Error">Error</option>
+                <option value="Deferment Replied">Deferment Replied</option>
+                <option value="Declined">Declined</option>
               </select>
             </div>
           </div>
