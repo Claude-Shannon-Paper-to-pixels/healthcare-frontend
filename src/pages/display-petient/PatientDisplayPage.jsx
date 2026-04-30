@@ -739,9 +739,15 @@ function PatientDisplayPage() {
           }
         />
 
-        {(error || patientError) && <div className="error-message">{error || patientError}</div>}
+        {(error || patientError) && (
+          <div className="error-message">{error || patientError}</div>
+        )}
 
-        <PatientSummaryCard patient={patient} admission={admission} insurance={insurance} />
+        <PatientSummaryCard
+          patient={patient}
+          admission={admission}
+          insurance={insurance}
+        />
 
         <SectionTabs
           tabs={tabs}
@@ -749,7 +755,7 @@ function PatientDisplayPage() {
           onChange={setActiveTab}
         />
 
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <OverviewPanel
             isStaffView={isStaffView}
             patient={patient}
@@ -764,7 +770,7 @@ function PatientDisplayPage() {
           />
         )}
 
-        {activeTab === 'admission' && (
+        {activeTab === "admission" && (
           <AdmissionPanel
             admission={admission}
             patient={patient}
@@ -772,7 +778,7 @@ function PatientDisplayPage() {
             showAllAdmissionFields={showAllAdmissionFields}
             setShowAllAdmissionFields={setShowAllAdmissionFields}
             showAdvancedAdmission={showAdvancedAdmission}
-              // setShowAdvancedAdmission is no longer used
+            // setShowAdvancedAdmission is no longer used
             admissionSearch={admissionSearch}
             setAdmissionSearch={setAdmissionSearch}
             editingSection={editingSection}
@@ -786,13 +792,13 @@ function PatientDisplayPage() {
           />
         )}
 
-        {activeTab === 'insurance' && admission && (
+        {activeTab === "insurance" && admission && (
           <InsurancePanel
             insurance={insurance}
             admission={admission}
             patient={patient}
             canManageClinical={canManageClinical}
-              // showAdvancedInsurance is no longer used
+            // showAdvancedInsurance is no longer used
             insuranceSearch={insuranceSearch}
             setInsuranceSearch={setInsuranceSearch}
             editingSection={editingSection}
@@ -807,7 +813,7 @@ function PatientDisplayPage() {
           />
         )}
 
-        {activeTab === 'referrals' && (
+        {activeTab === "referrals" && (
           <ReferralsPanel
             referralLetters={referralLetters}
             referralLoading={referralLoading}
@@ -819,21 +825,25 @@ function PatientDisplayPage() {
             savingSection={savingSection}
             patientId={patient.id}
           />
-        )} 
+        )}
 
-        {activeTab === 'add-ons' && (
+        {activeTab === "add-ons" && (
           <AddOnsPanel
             addOnProcedures={addOnProcedures}
             addOnLoading={addOnLoading}
             addOnError={addOnError}
             canManageClinical={canManageClinical}
             showCreateAddOn={showCreateAddOn}
-            setShowCreateAddOn={(val) => { setShowCreateAddOn(val); if (val) setAddOnEmailStatus('idle'); }}
+            setShowCreateAddOn={(val) => {
+              setShowCreateAddOn(val);
+              if (val) setAddOnEmailStatus("idle");
+            }}
             handleCreateAddOnProcedure={handleCreateAddOnProcedure}
             savingSection={savingSection}
             patientId={patient.id}
             addOnEmailStatus={addOnEmailStatus}
             onStatusChange={handleUpdateAddOnStatus}
+            patient={patient}
           />
         )}
 
@@ -853,7 +863,6 @@ function PatientDisplayPage() {
             onClose={() => setShowPafModal(false)}
           />
         )}
-
       </div>
     </div>
   );
