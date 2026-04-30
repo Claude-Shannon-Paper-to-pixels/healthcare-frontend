@@ -56,6 +56,8 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   });
 
   const [errors, setErrors] = useState({});
+  const [showGLServiceModal, setShowGLServiceModal] = useState(false);
+  const [pendingGlService, setPendingGlService] = useState('');
 
   const { recognitionSupported, listeningField, toggleListening } = useSpeechRecognition({
     lang: 'en-US',
@@ -142,6 +144,31 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
         };
       }
     });
+  };
+
+  const handleFinancialClassChange = (value) => {
+    setAdmissionData(prev => ({ ...prev, financial_class: value, gl_service: '' }));
+    if (errors.financial_class) setErrors(prev => ({ ...prev, financial_class: '' }));
+    setPendingGlService(value === 'Self-Pay' ? 'in_patient' : '');
+    setShowGLServiceModal(true);
+  };
+
+  const openGLServiceModal = () => {
+    setPendingGlService(admissionData.gl_service);
+    setShowGLServiceModal(true);
+  };
+
+  const confirmGlService = () => {
+    setAdmissionData(prev => ({ ...prev, gl_service: pendingGlService }));
+    if (errors.gl_service) setErrors(prev => ({ ...prev, gl_service: '' }));
+    setShowGLServiceModal(false);
+  };
+
+  const cancelGlService = () => {
+    if (admissionData.financial_class === 'Self-Pay') {
+      setAdmissionData(prev => ({ ...prev, gl_service: 'in_patient' }));
+    }
+    setShowGLServiceModal(false);
   };
 
   const validate = () => {
@@ -377,6 +404,53 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
       color: 'white',
       opacity: '0.6',
       cursor: 'not-allowed'
+    },
+    modalOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    },
+    modalContainer: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      padding: '32px',
+      width: '480px',
+      maxWidth: '90vw',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+    },
+    glCard: {
+      border: '2px solid #e2e8f0',
+      borderRadius: '8px',
+      padding: '20px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
+      marginBottom: '12px',
+      transition: 'border-color 0.2s ease, background-color 0.2s ease'
+    },
+    glCardSelected: {
+      borderColor: '#3498db',
+      backgroundColor: '#ebf5fb'
+    },
+    glServiceBadge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
+      backgroundColor: '#ebf5fb',
+      border: '1.5px solid #3498db',
+      borderRadius: '6px',
+      padding: '10px 18px',
+      color: '#2980b9',
+      fontWeight: '600',
+      fontSize: '0.95rem'
     }
   };
 
@@ -390,36 +464,99 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
 
         <div style={styles.formGroup}>
           <label style={styles.label}>
-            GL Service <span style={styles.required}>*</span>
+            Financial Class <span style={styles.required}>*</span>
           </label>
           <div style={styles.radioGroup}>
-            <label style={styles.radioLabel}>
+            <label style={{
+              ...styles.radioLabel,
+              ...(admissionData.financial_class === 'Self-Pay' ? { borderColor: '#3498db', backgroundColor: '#ebf5fb' } : {})
+            }}>
               <input
                 type="radio"
-                name="gl_service"
-                value="in_patient"
-                checked={admissionData.gl_service === 'in_patient'}
-                onChange={handleChange}
+                name="financial_class"
+                value="Self-Pay"
+                checked={admissionData.financial_class === 'Self-Pay'}
+                onChange={(e) => handleFinancialClassChange(e.target.value)}
                 style={styles.radio}
                 disabled={loading}
               />
-              In Patient
+              Self-Pay
             </label>
-            <label style={styles.radioLabel}>
+            <label style={{
+              ...styles.radioLabel,
+              ...(admissionData.financial_class === 'Guarantee Letter' ? { borderColor: '#3498db', backgroundColor: '#ebf5fb' } : {})
+            }}>
               <input
                 type="radio"
-                name="gl_service"
-                value="out_patient"
-                checked={admissionData.gl_service === 'out_patient'}
-                onChange={handleChange}
+                name="financial_class"
+                value="Guarantee Letter"
+                checked={admissionData.financial_class === 'Guarantee Letter'}
+                onChange={(e) => handleFinancialClassChange(e.target.value)}
                 style={styles.radio}
                 disabled={loading}
               />
-              Out Patient
+              Guarantee Letter
             </label>
           </div>
-          {errors.gl_service && <span style={styles.errorMessage}>{errors.gl_service}</span>}
+          {errors.financial_class && <span style={styles.errorMessage}>{errors.financial_class}</span>}
         </div>
+
+        {admissionData.financial_class && (
+          <div style={styles.formGroup}>
+            <label style={styles.label}>
+              GL Service <span style={styles.required}>*</span>
+            </label>
+            {admissionData.gl_service ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={styles.glServiceBadge}>
+                  {admissionData.gl_service === 'in_patient' ? 'In Patient' : 'Out Patient'}
+                </div>
+                {admissionData.financial_class === 'Guarantee Letter' && (
+                  <button
+                    type="button"
+                    onClick={openGLServiceModal}
+                    disabled={loading}
+                    style={{
+                      padding: '8px 16px',
+                      border: '1px solid #3498db',
+                      borderRadius: '4px',
+                      backgroundColor: 'white',
+                      color: '#3498db',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => { setPendingGlService(''); setShowGLServiceModal(true); }}
+                  disabled={loading}
+                  style={{
+                    padding: '10px 20px',
+                    border: `2px dashed ${errors.gl_service ? '#e74c3c' : '#3498db'}`,
+                    borderRadius: '6px',
+                    backgroundColor: errors.gl_service ? '#fff5f5' : '#f8fbff',
+                    color: errors.gl_service ? '#e74c3c' : '#3498db',
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    fontWeight: '500',
+                    width: '100%',
+                    textAlign: 'center'
+                  }}
+                >
+                  Click to Select GL Service
+                </button>
+                {errors.gl_service && <span style={styles.errorMessage}>{errors.gl_service}</span>}
+              </div>
+            )}
+          </div>
+        )}
 
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
@@ -538,39 +675,6 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
             {errors.type_of_accommodation && (
               <span style={styles.errorMessage}>{errors.type_of_accommodation}</span>
             )}
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>
-            Financial Class <span style={styles.required}>*</span>
-          </label>
-          <div style={styles.radioGroup}>
-            <label style={styles.radioLabel}>
-              <input
-                type="radio"
-                name="financial_class"
-                value="Self-Pay"
-                checked={admissionData.financial_class === 'Self-Pay'}
-                onChange={handleChange}
-                style={styles.radio}
-                disabled={loading}
-              />
-              Self-Pay
-            </label>
-            <label style={styles.radioLabel}>
-              <input
-                type="radio"
-                name="financial_class"
-                value="Guarantee Letter"
-                checked={admissionData.financial_class === 'Guarantee Letter'}
-                onChange={handleChange}
-                style={styles.radio}
-                disabled={loading}
-              />
-              Guarantee Letter
-            </label>
-          </div>
-          {errors.financial_class && <span style={styles.errorMessage}>{errors.financial_class}</span>}
         </div>
 
         {/* Medical Information */}
@@ -971,6 +1075,120 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
                 : 'Complete & Create'))}
         </button>
       </div>
+
+      {showGLServiceModal && (
+        <div style={styles.modalOverlay} onClick={cancelGlService}>
+          <div style={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div style={{ marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '1.3rem' }}>Select GL Service</h3>
+              <p style={{ margin: '8px 0 0', color: '#7f8c8d', fontSize: '0.9rem' }}>
+                {admissionData.financial_class === 'Self-Pay'
+                  ? 'Self-Pay patients are automatically registered as In-Patient.'
+                  : 'Select the service type for this Guarantee Letter patient.'}
+              </p>
+            </div>
+
+            <div
+              style={{
+                ...styles.glCard,
+                ...(pendingGlService === 'in_patient' ? styles.glCardSelected : {}),
+                ...(admissionData.financial_class === 'Self-Pay' ? { cursor: 'default' } : {})
+              }}
+              onClick={() => {
+                if (admissionData.financial_class !== 'Self-Pay') setPendingGlService('in_patient');
+              }}
+            >
+              <div style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                border: `2px solid ${pendingGlService === 'in_patient' ? '#3498db' : '#cbd5e0'}`,
+                backgroundColor: pendingGlService === 'in_patient' ? '#3498db' : 'white',
+                flexShrink: 0
+              }} />
+              <div>
+                <div style={{ fontWeight: '600', color: '#2c3e50' }}>In Patient</div>
+                <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginTop: '4px' }}>
+                  Patient will be admitted to a ward
+                </div>
+              </div>
+              {admissionData.financial_class === 'Self-Pay' && (
+                <span style={{
+                  marginLeft: 'auto',
+                  backgroundColor: '#ebf5fb',
+                  color: '#2980b9',
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600'
+                }}>
+                  Auto-selected
+                </span>
+              )}
+            </div>
+
+            {admissionData.financial_class === 'Guarantee Letter' && (
+              <div
+                style={{
+                  ...styles.glCard,
+                  ...(pendingGlService === 'out_patient' ? styles.glCardSelected : {})
+                }}
+                onClick={() => setPendingGlService('out_patient')}
+              >
+                <div style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  border: `2px solid ${pendingGlService === 'out_patient' ? '#3498db' : '#cbd5e0'}`,
+                  backgroundColor: pendingGlService === 'out_patient' ? '#3498db' : 'white',
+                  flexShrink: 0
+                }} />
+                <div>
+                  <div style={{ fontWeight: '600', color: '#2c3e50' }}>Out Patient</div>
+                  <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginTop: '4px' }}>
+                    Patient will be treated without admission
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={cancelGlService}
+                style={{
+                  padding: '10px 20px',
+                  border: '1px solid #cbd5e0',
+                  borderRadius: '6px',
+                  backgroundColor: 'white',
+                  color: '#2c3e50',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmGlService}
+                disabled={!pendingGlService}
+                style={{
+                  padding: '10px 24px',
+                  border: 'none',
+                  borderRadius: '6px',
+                  backgroundColor: pendingGlService ? '#3498db' : '#95a5a6',
+                  color: 'white',
+                  cursor: pendingGlService ? 'pointer' : 'not-allowed',
+                  fontSize: '0.95rem',
+                  fontWeight: '600'
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
