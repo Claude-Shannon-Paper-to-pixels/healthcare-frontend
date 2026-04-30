@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initAuth } from '../api/auth';
 import { getPatients, updatePatientInsurance } from '../api/patients';
+import { createGLTrackingEntry } from '../api/glTracking';
 import Navbar from '../components/Navbar';
 import DefermentModal from '../components/DefermentModal';
 import AddOnStatusModal from '../components/AddOnStatusModal';
@@ -305,6 +306,13 @@ function DoctorDashboard() {
     try {
       await updatePatientInsurance(selectedDefermentInsurance.id, {
         IGL_status: "Deferment Replied",
+      });
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: selectedDefermentInsurance?.estimated_cost ?? null,
+        status: 'Deferment Replied',
+        patient: selectedDefermentPatient?.id ?? null,
+        insurance: selectedDefermentInsurance.id,
       });
       setUploadedFilesMap((prev) => {
         const next = new Map(prev);

@@ -4,6 +4,7 @@ import { initAuth } from '../../api/auth';
 import { updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
 import { createReferralLetter } from '../../api/Referralletter';
 import { createAddOnProcedure, updateAddOnProcedure } from '../../api/addOnProcedures';
+import { createGLTrackingEntry } from '../../api/glTracking';
 import { sendAddOnEmail } from '../../utils/sendAddOnEmail';
 import { isAdmin, isDoctor, isStaff } from '../../utils/auth';
 import directus from '../../api/directus';
@@ -12,12 +13,14 @@ import Navbar from '../../components/Navbar';
 import usePatient from '../../hooks/usePatient';
 import useReferralLetters from '../../hooks/useReferralLetters';
 import useAddOnProcedures from '../../hooks/useAddOnProcedures';
+import useGLTracking from '../../hooks/useGLTracking';
 import HeaderActions from './panels/HeaderActions';
 import OverviewPanel from './panels/OverviewPanel';
 import AdmissionPanel from './panels/AdmissionPanel';
 import InsurancePanel from './panels/InsurancePanel';
 import ReferralsPanel from './panels/ReferralsPanel';
 import AddOnsPanel from './panels/AddOnsPanel';
+import GLTrackingPanel from './panels/GLTrackingPanel';
 import PatientHeader from './PatientHeader';
 import SectionTabs from './SectionTabs';
 import SectionSearch from './SectionSearch';
@@ -73,6 +76,13 @@ function PatientDisplayPage() {
     refresh: refreshAddOnProcedures,
     setError: setAddOnError
   } = useAddOnProcedures(id, Boolean(user));
+
+  const {
+    entries: glEntries,
+    loading: glLoading,
+    error: glError,
+    refresh: refreshGLTracking
+  } = useGLTracking(id, Boolean(user));
 
   const [addOnEmailStatus, setAddOnEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'failed'
 
@@ -610,6 +620,14 @@ function PatientDisplayPage() {
       console.log('Updating insurance', { insuranceId, payload });
       await updatePatientInsurance(insuranceId, payload);
       console.log('Insurance update successful', { insuranceId });
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: payload.estimated_cost ?? insurance?.estimated_cost ?? null,
+        status: payload.IGL_status ?? null,
+        patient: id,
+        insurance: insuranceId,
+      });
+      await refreshGLTracking();
       setEditingSection(null);
       await refreshPatient();
     } catch (err) {
@@ -666,7 +684,16 @@ function PatientDisplayPage() {
   const handleUpdateAddOnStatus = async (procedureId, newStatus) => {
     try {
       await updateAddOnProcedure(procedureId, { status: newStatus });
+      const procedure = addOnProcedures.find((p) => p.id === procedureId);
+      await createGLTrackingEntry({
+        gl_category: 'Add-on procedure',
+        amount: procedure?.estimated_cost ?? null,
+        status: newStatus,
+        patient: id,
+        addon_procedure: procedureId,
+      });
       await refreshAddOnProcedures();
+      await refreshGLTracking();
     } catch (err) {
       setAddOnError(err.message || 'Failed to update status');
     }
@@ -711,7 +738,8 @@ function PatientDisplayPage() {
     { key: 'admission', label: 'Admission', hidden: false },
     { key: 'insurance', label: 'Insurance', hidden: !admission },
     { key: 'add-ons', label: 'Add-on Procedures' },
-    { key: 'referrals', label: 'Referrals' }
+    { key: 'referrals', label: 'Referrals' },
+    { key: 'gl-tracking', label: 'GL Tracking' }
   ].filter((tab) => !tab.hidden);
 
   return (
@@ -844,6 +872,14 @@ function PatientDisplayPage() {
             addOnEmailStatus={addOnEmailStatus}
             onStatusChange={handleUpdateAddOnStatus}
             patient={patient}
+          />
+        )}
+
+        {activeTab === 'gl-tracking' && (
+          <GLTrackingPanel
+            entries={glEntries}
+            loading={glLoading}
+            error={glError}
           />
         )}
 

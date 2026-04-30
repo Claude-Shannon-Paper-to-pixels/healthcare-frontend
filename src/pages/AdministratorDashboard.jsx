@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initAuth } from '../api/auth';
 import { assignBedToPatient, getPatients, updateAdmissionRecord, updatePatientInsurance } from '../api/patients';
+import { createGLTrackingEntry } from '../api/glTracking';
 import Navbar from '../components/Navbar';
 import AssignBedModal from './bedcollection/AssignBedModal';
 import AdmissionStatusModal from '../components/AdmissionStatusModal';
@@ -173,6 +174,13 @@ function AdminDashboard() {
       await updatePatientInsurance(selectedInsurance.id, {
         IGL_status: newStatus,
       });
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: selectedInsurance?.estimated_cost ?? null,
+        status: newStatus,
+        patient: selectedIglPatient?.id ?? null,
+        insurance: selectedInsurance.id,
+      });
 
       // Optimistic update - update local state without full refetch
       setPatients((prevPatients) =>
@@ -233,6 +241,13 @@ function AdminDashboard() {
     try {
       await updatePatientInsurance(selectedDefermentInsurance.id, {
         IGL_status: "Deferment Replied",
+      });
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: selectedDefermentInsurance?.estimated_cost ?? null,
+        status: 'Deferment Replied',
+        patient: selectedDefermentPatient?.id ?? null,
+        insurance: selectedDefermentInsurance.id,
       });
       setUploadedFilesMap((prev) => {
         const next = new Map(prev);
