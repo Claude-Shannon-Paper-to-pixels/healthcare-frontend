@@ -46,12 +46,14 @@ export async function getPatients(filters = {}) {
           'insurance.IGL_status',
           'insurance.Policy_No',
           'insurance.IGL_number',
+          'insurance.estimated_cost',
 
           // Related: Add-on Procedures (for dashboard status column)
           'Add_on_Procedures.id',
           'Add_on_Procedures.status',
           'Add_on_Procedures.procedure_description',
-          'Add_on_Procedures.plan_date'
+          'Add_on_Procedures.plan_date',
+          'Add_on_Procedures.estimated_cost'
         ],
         filter: filters,
         limit: -1,
