@@ -1,21 +1,26 @@
 // src/pages/AdminDashboard.jsx
-import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { initAuth } from '../api/auth';
-import { assignBedToPatient, getPatients, updateAdmissionRecord, updatePatientInsurance } from '../api/patients';
-import { createGLTrackingEntry } from '../api/glTracking';
-import Navbar from '../components/Navbar';
-import AssignBedModal from './bedcollection/AssignBedModal';
-import AdmissionStatusModal from '../components/AdmissionStatusModal';
-import IglStatusModal from '../components/IglStatusModal';
-import DefermentModal from '../components/DefermentModal';
-import AddOnStatusModal from '../components/AddOnStatusModal';
-import IglStatusPieChart from './charts/IglStatusPieChart';
-import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
-import FiltersBar from './dashboard-widgets/FiltersBar';
-import VoiceWidget from './voice/VoiceWidget';
-import KpiCards from './dashboard-widgets/KpiCards';
-import DashboardGreeting from './dashboard-widgets/DashboardGreeting';
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { initAuth } from "../api/auth";
+import {
+  assignBedToPatient,
+  getPatients,
+  updateAdmissionRecord,
+  updatePatientInsurance,
+} from "../api/patients";
+import { createGLTrackingEntry } from "../api/glTracking";
+import Navbar from "../components/Navbar";
+import AssignBedModal from "./bedcollection/AssignBedModal";
+import AdmissionStatusModal from "../components/AdmissionStatusModal";
+import IglStatusModal from "../components/IglStatusModal";
+import DefermentModal from "../components/DefermentModal";
+import AddOnStatusModal from "../components/AddOnStatusModal";
+import IglStatusPieChart from "./charts/IglStatusPieChart";
+import AdmissionStatusPieChart from "./charts/AdmissionStatusPieChart";
+import FiltersBar from "./dashboard-widgets/FiltersBar";
+import VoiceWidget from "./voice/VoiceWidget";
+import KpiCards from "./dashboard-widgets/KpiCards";
+import DashboardGreeting from "./dashboard-widgets/DashboardGreeting";
 import { sendTelegramNotification } from "../utils/telegram";
 
 function AdminDashboard() {
@@ -23,40 +28,33 @@ function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [initializing, setInitializing] = useState(true);
   const [assigning, setAssigning] = useState(false);
-  const [assignError, setAssignError] = useState('');
+  const [assignError, setAssignError] = useState("");
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [selectedAdmission, setSelectedAdmission] = useState(null);
   const [selectedStatusPatient, setSelectedStatusPatient] = useState(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
-  const [statusError, setStatusError] = useState('');
+  const [statusError, setStatusError] = useState("");
   const [iglModalOpen, setIglModalOpen] = useState(false);
   const [selectedIglPatient, setSelectedIglPatient] = useState(null);
   const [selectedInsurance, setSelectedInsurance] = useState(null);
   const [iglUpdating, setIglUpdating] = useState(false);
-  const [iglError, setIglError] = useState('');
+  const [iglError, setIglError] = useState("");
   const [defermentModalOpen, setDefermentModalOpen] = useState(false);
-  const [selectedDefermentPatient, setSelectedDefermentPatient] = useState(null);
-  const [selectedDefermentInsurance, setSelectedDefermentInsurance] = useState(null);
+  const [selectedDefermentPatient, setSelectedDefermentPatient] =
+    useState(null);
+  const [selectedDefermentInsurance, setSelectedDefermentInsurance] =
+    useState(null);
   const [defermentUpdating, setDefermentUpdating] = useState(false);
   const [uploadedFilesMap, setUploadedFilesMap] = useState(() => new Map());
-  const [searchTerm, setSearchTerm] = useState('');
-  const [operationDateFilter, setOperationDateFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [operationDateFilter, setOperationDateFilter] = useState("");
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [expandedIglCells, setExpandedIglCells] = useState(new Set());
-  // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
-  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => {
-    try {
-      const saved = localStorage.getItem("iglStatusTimestamps");
-      return saved ? new Map(JSON.parse(saved)) : new Map();
-    } catch {
-      return new Map();
-    }
-  });
   const [addOnModalOpen, setAddOnModalOpen] = useState(false);
   const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
 
@@ -65,15 +63,15 @@ function AdminDashboard() {
       const authenticatedUser = await initAuth();
 
       if (!authenticatedUser) {
-        navigate('/login');
+        navigate("/login");
         return;
       }
 
-      if (authenticatedUser.role?.name !== 'Administrator') {
-        navigate('/dashboard');
+      if (authenticatedUser.role?.name !== "Administrator") {
+        navigate("/dashboard");
         return;
       }
-      
+
       setUser(authenticatedUser);
       setInitializing(false);
     };
@@ -85,17 +83,6 @@ function AdminDashboard() {
     if (!user || initializing) return;
     fetchPatients();
   }, [user, initializing]);
-
-  const saveTimestamp = (insuranceId) => {
-    setIglStatusTimestamps((prev) => {
-      const next = new Map(prev);
-      next.set(insuranceId, new Date().toISOString());
-      localStorage.setItem("iglStatusTimestamps", JSON.stringify([...next]));
-      return next;
-    });
-  };
-
-
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -111,7 +98,7 @@ function AdminDashboard() {
 
   const handleOpenAssign = (patient) => {
     setSelectedPatient(patient);
-    setAssignError('');
+    setAssignError("");
     setAssignModalOpen(true);
   };
 
@@ -119,26 +106,26 @@ function AdminDashboard() {
     if (!admission?.id) return;
     setSelectedStatusPatient(patient);
     setSelectedAdmission(admission);
-    setStatusError('');
+    setStatusError("");
     setStatusModalOpen(true);
   };
 
   const handleStatusSave = async (newStatus) => {
     if (!selectedAdmission?.id) return;
     setStatusUpdating(true);
-    setStatusError('');
+    setStatusError("");
     try {
       await updateAdmissionRecord(selectedAdmission.id, { status: newStatus });
-      
+
       // Optimistic update - update local state without full refetch
-      setPatients(prevPatients => 
-        prevPatients.map(patient => {
+      setPatients((prevPatients) =>
+        prevPatients.map((patient) => {
           if (patient.id === selectedStatusPatient.id) {
             const updatedAdmissions = Array.isArray(patient.patient_Admission)
-              ? patient.patient_Admission.map(adm => 
-                  adm.id === selectedAdmission.id 
+              ? patient.patient_Admission.map((adm) =>
+                  adm.id === selectedAdmission.id
                     ? { ...adm, status: newStatus }
-                    : adm
+                    : adm,
                 )
               : patient.patient_Admission?.id === selectedAdmission.id
                 ? { ...patient.patient_Admission, status: newStatus }
@@ -146,14 +133,14 @@ function AdminDashboard() {
             return { ...patient, patient_Admission: updatedAdmissions };
           }
           return patient;
-        })
+        }),
       );
-      
+
       setStatusModalOpen(false);
       setSelectedAdmission(null);
       setSelectedStatusPatient(null);
     } catch (err) {
-      setStatusError(err.message || 'Failed to update admission status');
+      setStatusError(err.message || "Failed to update admission status");
     } finally {
       setStatusUpdating(false);
     }
@@ -163,20 +150,20 @@ function AdminDashboard() {
     if (!insurance?.id) return;
     setSelectedIglPatient(patient);
     setSelectedInsurance(insurance);
-    setIglError('');
+    setIglError("");
     setIglModalOpen(true);
   };
 
   const handleIglStatusSave = async (newStatus) => {
     if (!selectedInsurance?.id) return;
     setIglUpdating(true);
-    setIglError('');
+    setIglError("");
     try {
       await updatePatientInsurance(selectedInsurance.id, {
         IGL_status: newStatus,
       });
       await createGLTrackingEntry({
-        gl_category: 'IGL',
+        gl_category: "IGL",
         amount: selectedInsurance?.estimated_cost ?? null,
         status: newStatus,
         patient: selectedIglPatient?.id ?? null,
@@ -193,7 +180,7 @@ function AdminDashboard() {
                     ? {
                         ...ins,
                         IGL_status: newStatus,
-                        date_modified: new Date().toISOString(),
+                        date_updated: new Date().toISOString(),
                       }
                     : ins,
                 )
@@ -201,7 +188,7 @@ function AdminDashboard() {
                 ? {
                     ...patient.insurance,
                     IGL_status: newStatus,
-                    date_modified: new Date().toISOString(),
+                    date_updated: new Date().toISOString(),
                   }
                 : patient.insurance;
             return { ...patient, insurance: updatedInsurance };
@@ -210,7 +197,6 @@ function AdminDashboard() {
         }),
       );
 
-      saveTimestamp(selectedInsurance.id);
       // ADD THIS LINE:
       await sendTelegramNotification(
         `🏥 *IGL Status Updated*\n` +
@@ -223,7 +209,7 @@ function AdminDashboard() {
       setSelectedInsurance(null);
       setSelectedIglPatient(null);
     } catch (err) {
-      setIglError(err.message || 'Failed to update IGL status');
+      setIglError(err.message || "Failed to update IGL status");
     } finally {
       setIglUpdating(false);
     }
@@ -244,9 +230,9 @@ function AdminDashboard() {
         IGL_status: "Deferment Replied",
       });
       await createGLTrackingEntry({
-        gl_category: 'IGL',
+        gl_category: "IGL",
         amount: selectedDefermentInsurance?.estimated_cost ?? null,
-        status: 'Deferment Replied',
+        status: "Deferment Replied",
         patient: selectedDefermentPatient?.id ?? null,
         insurance: selectedDefermentInsurance.id,
       });
@@ -264,7 +250,7 @@ function AdminDashboard() {
                     ? {
                         ...ins,
                         IGL_status: "Deferment Replied",
-                        date_modified: new Date().toISOString(),
+                        date_updated: new Date().toISOString(),
                       }
                     : ins,
                 )
@@ -272,7 +258,7 @@ function AdminDashboard() {
                 ? {
                     ...patient.insurance,
                     IGL_status: "Deferment Replied",
-                    date_modified: new Date().toISOString(),
+                    date_updated: new Date().toISOString(),
                   }
                 : patient.insurance;
             return { ...patient, insurance: updatedInsurance };
@@ -280,7 +266,7 @@ function AdminDashboard() {
           return patient;
         }),
       );
-      saveTimestamp(selectedDefermentInsurance.id);
+
       // ADD this line after saveTimestamp in handleDefermentSubmit:
       await sendTelegramNotification(
         `🏥 *IGL Status Updated*\n` +
@@ -294,7 +280,7 @@ function AdminDashboard() {
         prev ? { ...prev, IGL_status: "Deferment Replied" } : prev,
       );
     } catch (err) {
-      console.error('Failed to update deferment status:', err);
+      console.error("Failed to update deferment status:", err);
     } finally {
       setDefermentUpdating(false);
     }
@@ -303,59 +289,70 @@ function AdminDashboard() {
   const handleAssignBed = async (bed) => {
     if (!selectedPatient) return;
     setAssigning(true);
-    setAssignError('');
+    setAssignError("");
     try {
       await assignBedToPatient(selectedPatient.id, bed.id);
-      
+
       // Optimistic update - update local state without full refetch
-      setPatients(prevPatients => 
-        prevPatients.map(patient => {
+      setPatients((prevPatients) =>
+        prevPatients.map((patient) => {
           if (patient.id === selectedPatient.id) {
-            return { 
-              ...patient, 
+            return {
+              ...patient,
               patient_bed: {
                 id: bed.id,
                 bed_no: bed.bed_no,
-                Status: 'Booking',
-                select_ward: bed.select_ward
-              }
+                Status: "Booking",
+                select_ward: bed.select_ward,
+              },
             };
           }
           return patient;
-        })
+        }),
       );
-      
+
       setAssignModalOpen(false);
       setSelectedPatient(null);
     } catch (err) {
-      setAssignError(err.message || 'Failed to assign bed');
+      setAssignError(err.message || "Failed to assign bed");
     } finally {
       setAssigning(false);
     }
   };
 
-
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'N/A';
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    if (isNaN(date.getTime())) return "N/A";
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
   const formatDateTime = (date) => {
-    if (!date) return '—';
-    return date.toLocaleString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+    if (!date) return "—";
+
+    // Directus DateTime fields return UTC without 'Z' - add it manually
+    const d =
+      typeof date === "string" && !date.endsWith("Z") && !date.includes("+")
+        ? new Date(date + "Z")
+        : new Date(date);
+
+    return d.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
+  
+
 
   const toggleIglCell = (insuranceId) => {
-    setExpandedIglCells(prev => {
+    setExpandedIglCells((prev) => {
       const next = new Set(prev);
       if (next.has(insuranceId)) next.delete(insuranceId);
       else next.add(insuranceId);
@@ -364,11 +361,11 @@ function AdminDashboard() {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return 'N/A';
-    const [hours, minutes] = timeString.split(':');
+    if (!timeString) return "N/A";
+    const [hours, minutes] = timeString.split(":");
     if (!hours || !minutes) return timeString;
     const hour = parseInt(hours, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const ampm = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 || 12;
     return `${hour12}:${minutes} ${ampm}`;
   };
@@ -376,23 +373,23 @@ function AdminDashboard() {
   // Helper function to get the latest admission
   const getLatestAdmission = (admissions) => {
     if (!admissions || admissions.length === 0) return null;
-    
+
     // If single admission object (Many-to-One)
     if (!Array.isArray(admissions)) return admissions;
-    
+
     // If array of admissions (One-to-Many), get the latest
-    return admissions.sort((a, b) => 
-      new Date(b.admission_date) - new Date(a.admission_date)
+    return admissions.sort(
+      (a, b) => new Date(b.admission_date) - new Date(a.admission_date),
     )[0];
   };
 
   // Helper function to get insurance data
   const getInsurance = (insurance) => {
     if (!insurance) return null;
-    
+
     // If single insurance object
     if (!Array.isArray(insurance)) return insurance;
-    
+
     // If array, get the first or active one
     return insurance[0] || null;
   };
@@ -400,10 +397,10 @@ function AdminDashboard() {
   // Helper function to get bed data
   const getBed = (bed) => {
     if (!bed) return null;
-    
+
     // If single bed object
     if (!Array.isArray(bed)) return bed;
-    
+
     // If array, get the current/active bed
     return bed[0] || null;
   };
@@ -418,14 +415,16 @@ function AdminDashboard() {
         const bed = getBed(patient.patient_bed);
         const admission = getLatestAdmission(patient.patient_Admission);
         const searchTarget = [
-          patient.patient_name || '',
-          patient.mrn || '',
-          insurance?.tpa_name || '',
-          insurance?.tpa_company || '',
-          bed?.bed_no || '',
-          admission?.status || '',
-          (insurance?.IGL_status) || ''
-        ].join(' ').toLowerCase();
+          patient.patient_name || "",
+          patient.mrn || "",
+          insurance?.tpa_name || "",
+          insurance?.tpa_company || "",
+          bed?.bed_no || "",
+          admission?.status || "",
+          insurance?.IGL_status || "",
+        ]
+          .join(" ")
+          .toLowerCase();
         if (!searchTarget.includes(normalizedSearch)) return false;
       }
 
@@ -433,7 +432,7 @@ function AdminDashboard() {
       if (operationDateFilter) {
         const admission = getLatestAdmission(patient.patient_Admission);
         if (!admission?.operation_date) return false;
-        const opDate = admission.operation_date.split('T')[0];
+        const opDate = admission.operation_date.split("T")[0];
         if (opDate !== operationDateFilter) return false;
       }
 
@@ -442,31 +441,31 @@ function AdminDashboard() {
   }, [patients, normalizedSearch, operationDateFilter]);
 
   const iglChartData = useMemo(() => {
-    const counts = { 
-      Pending: 0, 
-      Approved: 0, 
-      Rejected: 0, 
-      'Partial Approval': 0, 
-      'Under Review': 0, 
-      Cancelled: 0 
+    const counts = {
+      Pending: 0,
+      Approved: 0,
+      Rejected: 0,
+      "Partial Approval": 0,
+      "Under Review": 0,
+      Cancelled: 0,
     };
     filteredPatients.forEach((patient) => {
       const insurance = getInsurance(patient.insurance);
-      const status = (insurance?.IGL_status || '').toLowerCase();
-      if (status.includes('reject')) counts.Rejected += 1;
-      else if (status.includes('partial')) counts['Partial Approval'] += 1;
-      else if (status.includes('review')) counts['Under Review'] += 1;
-      else if (status.includes('cancel')) counts.Cancelled += 1;
-      else if (status.includes('approve')) counts.Approved += 1;
+      const status = (insurance?.IGL_status || "").toLowerCase();
+      if (status.includes("reject")) counts.Rejected += 1;
+      else if (status.includes("partial")) counts["Partial Approval"] += 1;
+      else if (status.includes("review")) counts["Under Review"] += 1;
+      else if (status.includes("cancel")) counts.Cancelled += 1;
+      else if (status.includes("approve")) counts.Approved += 1;
       else counts.Pending += 1;
     });
     return [
-      { name: 'Pending', value: counts.Pending },
-      { name: 'Approved', value: counts.Approved },
-      { name: 'Rejected', value: counts.Rejected },
-      { name: 'Partial Approval', value: counts['Partial Approval'] },
-      { name: 'Under Review', value: counts['Under Review'] },
-      { name: 'Cancelled', value: counts.Cancelled }
+      { name: "Pending", value: counts.Pending },
+      { name: "Approved", value: counts.Approved },
+      { name: "Rejected", value: counts.Rejected },
+      { name: "Partial Approval", value: counts["Partial Approval"] },
+      { name: "Under Review", value: counts["Under Review"] },
+      { name: "Cancelled", value: counts.Cancelled },
     ];
   }, [filteredPatients]);
 
@@ -475,19 +474,22 @@ function AdminDashboard() {
     filteredPatients.forEach((patient) => {
       const admission = getLatestAdmission(patient.patient_Admission);
       const rawStatus = admission?.status;
-      const status = (typeof rawStatus === 'string' ? rawStatus.trim() : (rawStatus || 'Unknown'));
+      const status =
+        typeof rawStatus === "string"
+          ? rawStatus.trim()
+          : rawStatus || "Unknown";
       counts[status] = (counts[status] || 0) + 1;
     });
 
-    console.debug('Admin dashboard - admission status raw counts:', counts);
+    console.debug("Admin dashboard - admission status raw counts:", counts);
 
     const preferredOrder = [
-      'Admission Pending',
-      'Admitted',
-      'Discharge Pending',
-      'Today Discharged',
-      'KIV Discharged',
-      'Tomorrow Discharge'
+      "Admission Pending",
+      "Admitted",
+      "Discharge Pending",
+      "Today Discharged",
+      "KIV Discharged",
+      "Tomorrow Discharge",
     ];
 
     const result = [];
@@ -497,34 +499,36 @@ function AdminDashboard() {
         delete counts[name];
       }
     });
-    Object.keys(counts).forEach((name) => result.push({ name, value: counts[name] }));
+    Object.keys(counts).forEach((name) =>
+      result.push({ name, value: counts[name] }),
+    );
 
-    console.debug('Admin dashboard - admission chart data prepared:', result);
+    console.debug("Admin dashboard - admission chart data prepared:", result);
     return result;
   }, [filteredPatients]);
 
   const kpiData = useMemo(() => {
     const pendingCount = filteredPatients.filter((patient) => {
       const admission = getLatestAdmission(patient.patient_Admission);
-      return (admission?.status || '').toLowerCase().includes('pending');
+      return (admission?.status || "").toLowerCase().includes("pending");
     }).length;
 
     const admittedCount = filteredPatients.filter((patient) => {
       const admission = getLatestAdmission(patient.patient_Admission);
-      return (admission?.status || '').toLowerCase().includes('admitted');
+      return (admission?.status || "").toLowerCase().includes("admitted");
     }).length;
 
     const iglApproved = filteredPatients.filter((patient) => {
       const insurance = getInsurance(patient.insurance);
-      const status = (insurance?.IGL_status || '').toLowerCase();
-      return status.includes('approve');
+      const status = (insurance?.IGL_status || "").toLowerCase();
+      return status.includes("approve");
     }).length;
 
     return [
-      { label: 'Number of Patients', value: filteredPatients.length },
-      { label: 'IGL Approved', value: iglApproved },
-      { label: 'Total Admitted', value: admittedCount },
-      { label: 'Total Admission Pending', value: pendingCount }
+      { label: "Number of Patients", value: filteredPatients.length },
+      { label: "IGL Approved", value: iglApproved },
+      { label: "Total Admitted", value: admittedCount },
+      { label: "Total Admission Pending", value: pendingCount },
     ];
   }, [filteredPatients]);
 
@@ -538,20 +542,20 @@ function AdminDashboard() {
   return (
     <div>
       <Navbar user={user} />
-      
+
       <div className="page-container">
         <DashboardGreeting user={user} />
         <div className="page-header">
           <h1>Administrator Dashboard</h1>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              onClick={() => navigate('/patients/create')} 
+          <div style={{ display: "flex", gap: "12px" }}>
+            <button
+              onClick={() => navigate("/patients/create")}
               className="btn-primary"
             >
               + Create New Patient
             </button>
             <button
-              onClick={() => navigate('/ward-management')}
+              onClick={() => navigate("/ward-management")}
               className="btn-secondary"
             >
               Ward & Bed Management
@@ -568,9 +572,9 @@ function AdminDashboard() {
           <AdmissionStatusPieChart data={admissionChartData} />
         </div>
 
-        <FiltersBar 
-          searchTerm={searchTerm} 
-          onSearchChange={setSearchTerm} 
+        <FiltersBar
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
           operationDateFilter={operationDateFilter}
           onOperationDateChange={setOperationDateFilter}
           voiceWidget={<VoiceWidget />}
@@ -581,7 +585,10 @@ function AdminDashboard() {
         ) : (
           <div className="table-container dashboard-table-container">
             <div className="table-info">
-              <span>Showing {filteredPatients.length} patient{filteredPatients.length !== 1 ? 's' : ''}</span>
+              <span>
+                Showing {filteredPatients.length} patient
+                {filteredPatients.length !== 1 ? "s" : ""}
+              </span>
             </div>
             <table className="data-table dashboard-table">
               <thead>
@@ -609,14 +616,17 @@ function AdminDashboard() {
                   </tr>
                 ) : (
                   filteredPatients.map((patient) => {
-                    const admission = getLatestAdmission(patient.patient_Admission);
+                    const admission = getLatestAdmission(
+                      patient.patient_Admission,
+                    );
                     // console.log(patient.patient_Admission)
                     const insurance = getInsurance(patient.insurance);
-                    console.log(insurance)
+                    console.log(insurance);
                     const bed = getBed(patient.patient_bed);
                     // Display tpa_name when available; otherwise show 'Self-Pay'
-                    const insuranceLabel = insurance?.tpa_name || 'Self-Pay';
-                    const canAssignBed = admission?.status === 'Admission Pending';
+                    const insuranceLabel = insurance?.tpa_name || "Self-Pay";
+                    const canAssignBed =
+                      admission?.status === "Admission Pending";
                     const isExpanded = expandedRows.has(patient.id);
 
                     return (
@@ -663,11 +673,15 @@ function AdminDashboard() {
                             </span>
                           </td>
                           <td className="td-gl-service">
-                            {admission?.gl_service === 'in_patient' && (
-                              <span className="status-badge status-Admitted">In Patient</span>
+                            {admission?.gl_service === "in_patient" && (
+                              <span className="status-badge status-Admitted">
+                                In Patient
+                              </span>
                             )}
-                            {admission?.gl_service === 'out_patient' && (
-                              <span className="status-badge status-KIV-Discharged">Out Patient</span>
+                            {admission?.gl_service === "out_patient" && (
+                              <span className="status-badge status-KIV-Discharged">
+                                Out Patient
+                              </span>
                             )}
                             {!admission?.gl_service && <span>N/A</span>}
                           </td>
@@ -722,7 +736,7 @@ function AdminDashboard() {
                                   >
                                     {insurance?.IGL_status || "N/A"}
                                   </span>
-                                  {iglStatusTimestamps.get(insurance?.id) && (
+                                  {insurance?.date_updated && (
                                     <span className="igl-status-time">
                                       <svg
                                         width="10"
@@ -746,15 +760,7 @@ function AdminDashboard() {
                                           strokeLinecap="round"
                                         />
                                       </svg>
-                                      {formatDateTime(
-                                        iglStatusTimestamps.get(insurance?.id)
-                                          ? new Date(
-                                              iglStatusTimestamps.get(
-                                                insurance?.id,
-                                              ),
-                                            )
-                                          : null,
-                                      )}
+                                      {formatDateTime(insurance.date_updated)}
                                     </span>
                                   )}
                                 </button>
@@ -940,10 +946,17 @@ function AdminDashboard() {
                           </td>
                           <td>
                             {(() => {
-                              const procs = Array.isArray(patient.Add_on_Procedures)
+                              const procs = Array.isArray(
+                                patient.Add_on_Procedures,
+                              )
                                 ? patient.Add_on_Procedures
-                                : (patient.Add_on_Procedures ? [patient.Add_on_Procedures] : []);
-                              if (!procs.length) return <span style={{ color: '#94a3b8' }}>—</span>;
+                                : patient.Add_on_Procedures
+                                  ? [patient.Add_on_Procedures]
+                                  : [];
+                              if (!procs.length)
+                                return (
+                                  <span style={{ color: "#94a3b8" }}>—</span>
+                                );
                               return (
                                 <button
                                   type="button"
@@ -951,7 +964,8 @@ function AdminDashboard() {
                                   onClick={() => handleOpenAddOnModal(patient)}
                                 >
                                   <span className="igl-badge under-review">
-                                    {procs.length} Procedure{procs.length !== 1 ? 's' : ''}
+                                    {procs.length} Procedure
+                                    {procs.length !== 1 ? "s" : ""}
                                   </span>
                                 </button>
                               );
@@ -1118,7 +1132,11 @@ function AdminDashboard() {
         isOpen={defermentModalOpen}
         patient={selectedDefermentPatient}
         insurance={selectedDefermentInsurance}
-        uploadedFile={selectedDefermentInsurance ? uploadedFilesMap.get(selectedDefermentInsurance.id) : null}
+        uploadedFile={
+          selectedDefermentInsurance
+            ? uploadedFilesMap.get(selectedDefermentInsurance.id)
+            : null
+        }
         onClose={() => {
           if (!defermentUpdating) {
             setDefermentModalOpen(false);
@@ -1136,7 +1154,9 @@ function AdminDashboard() {
         procedures={
           Array.isArray(selectedAddOnPatient?.Add_on_Procedures)
             ? selectedAddOnPatient.Add_on_Procedures
-            : (selectedAddOnPatient?.Add_on_Procedures ? [selectedAddOnPatient.Add_on_Procedures] : [])
+            : selectedAddOnPatient?.Add_on_Procedures
+              ? [selectedAddOnPatient.Add_on_Procedures]
+              : []
         }
         onClose={() => {
           setAddOnModalOpen(false);
