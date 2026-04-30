@@ -15,6 +15,7 @@ import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
 import VoiceWidget from './voice/VoiceWidget';
 import KpiCards from './dashboard-widgets/KpiCards';
+import DashboardGreeting from './dashboard-widgets/DashboardGreeting';
 import { sendTelegramNotification } from "../utils/telegram";
 
 function StaffDashboard() {
@@ -496,6 +497,7 @@ function StaffDashboard() {
       <Navbar user={user} />
       
       <div className="page-container">
+        <DashboardGreeting user={user} />
         <div className="page-header">
           <h1>Staff Dashboard - Patients</h1>
           <button
