@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { sendTelegramNotification } from "../../utils/telegram";
 
 const STATUS_COLORS = {
   Approved:   { background: '#dcfce7', color: '#15803d' },
@@ -26,6 +27,8 @@ function AddOnProceduresDetails({ procedures = [], loading = false, error = '', 
     return `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'N/A';
   };
 
+  
+
   const resolveProcedureName = (procedure) =>
     procedure?.procedure_description ||
     procedure?.procedure_name ||
@@ -38,11 +41,20 @@ function AddOnProceduresDetails({ procedures = [], loading = false, error = '', 
     procedure?.plan_date || procedure?.procedure_date || procedure?.date || procedure?.created_at;
 
   const handleStatusChange = async (procedure, newStatus) => {
-    if (newStatus === procedure.status) { setEditingId(null); return; }
+    if (newStatus === procedure.status) {
+      setEditingId(null);
+      return;
+    }
     setSavingId(procedure.id);
     setEditingId(null);
     try {
       await onStatusChange(procedure.id, newStatus);
+      await sendTelegramNotification(
+        `🏥 *Add-on Procedure Status Updated*\n` +
+          `💊 Procedure: ${resolveProcedureName(procedure)}\n` +
+          `📋 New Status: ${newStatus}\n` +
+          `🕐 Time: ${new Date().toLocaleString("en-GB")}`,
+      );
     } finally {
       setSavingId(null);
     }
