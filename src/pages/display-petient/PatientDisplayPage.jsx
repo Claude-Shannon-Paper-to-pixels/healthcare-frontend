@@ -657,9 +657,17 @@ function PatientDisplayPage() {
     setSavingSection('create-insurance');
     setError('');
     try {
-      await directus.request(createItem('insurance', formData));
+      const createdInsurance = await directus.request(createItem('insurance', formData));
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: formData.estimated_cost ?? null,
+        status: formData.IGL_status || null,
+        patient: id,
+        insurance: createdInsurance.id,
+      });
       setShowCreateInsurance(false);
       await refreshPatient();
+      await refreshGLTracking();
     } catch (err) {
       // error handled by hook
     } finally {
@@ -703,9 +711,17 @@ function PatientDisplayPage() {
     setSavingSection('create-add-on');
     setAddOnError('');
     try {
-      await createAddOnProcedure(formData);
+      const createdProcedure = await createAddOnProcedure(formData);
+      await createGLTrackingEntry({
+        gl_category: 'Add-on procedure',
+        amount: formData.estimated_cost ?? null,
+        status: formData.status || null,
+        patient: id,
+        addon_procedure: createdProcedure.id,
+      });
       setShowCreateAddOn(false);
       await refreshAddOnProcedures();
+      await refreshGLTracking();
       setAddOnEmailStatus('sending');
       sendAddOnEmail(patient, insurance, formData)
         .then(() => setAddOnEmailStatus('sent'))
