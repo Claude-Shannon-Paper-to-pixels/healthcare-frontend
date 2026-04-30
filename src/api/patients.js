@@ -6,59 +6,59 @@ import { readItems, readItem, createItem, updateItem, deleteItem } from '@direct
 export async function getPatients(filters = {}) {
   try {
     const patients = await directus.request(
-      readItems('Patient', {
+      readItems("Patient", {
         fields: [
-          'id',
-          'patient_name',
-          'mrn',
-          'date_of_birth',
-          'NRIC',
-          'gender',
-          'contact_number',
-          'email',
-          'date_created',
-          
+          "id",
+          "patient_name",
+          "mrn",
+          "date_of_birth",
+          "NRIC",
+          "gender",
+          "contact_number",
+          "email",
+          "date_created",
+
           // Related: Created Doctor (Admitted By)
-          'user_created.id',
-          'user_created.first_name',
-          'user_created.last_name',
-          
+          "user_created.id",
+          "user_created.first_name",
+          "user_created.last_name",
+
           // Related: Patient Bed
-          'patient_bed.id',
-          'patient_bed.bed_no',
-          'patient_bed.Status',
-          'patient_bed.select_ward.id',
-          'patient_bed.select_ward.ward_name',
-          'patient_bed.select_ward.ward_code',
-          
-          
+          "patient_bed.id",
+          "patient_bed.bed_no",
+          "patient_bed.Status",
+          "patient_bed.select_ward.id",
+          "patient_bed.select_ward.ward_name",
+          "patient_bed.select_ward.ward_code",
+
           // Related: Admission (get the latest/active admission)
-          'patient_Admission.id',
-          'patient_Admission.status',
-          'patient_Admission.gl_service',
-          'patient_Admission.admission_date',
-          'patient_Admission.operation_date',
-          'patient_Admission.operation_time',
+          "patient_Admission.id",
+          "patient_Admission.status",
+          "patient_Admission.gl_service",
+          "patient_Admission.admission_date",
+          "patient_Admission.operation_date",
+          "patient_Admission.operation_time",
 
           // Related: Insurance
-          'insurance.id',
-          'insurance.tpa_name',
-          'insurance.IGL_status',
-          'insurance.Policy_No',
-          'insurance.IGL_number',
-          'insurance.estimated_cost',
+          "insurance.id",
+          "insurance.tpa_name",
+          "insurance.IGL_status",
+          "insurance.Policy_No",
+          "insurance.IGL_number",
+          "insurance.estimated_cost",
+          "insurance.date_updated",
 
           // Related: Add-on Procedures (for dashboard status column)
-          'Add_on_Procedures.id',
-          'Add_on_Procedures.status',
-          'Add_on_Procedures.procedure_description',
-          'Add_on_Procedures.plan_date',
-          'Add_on_Procedures.estimated_cost'
+          "Add_on_Procedures.id",
+          "Add_on_Procedures.status",
+          "Add_on_Procedures.procedure_description",
+          "Add_on_Procedures.plan_date",
+          "Add_on_Procedures.estimated_cost",
         ],
         filter: filters,
         limit: -1,
-        sort: ['-date_created']
-      })
+        sort: ["-date_created"],
+      }),
     );
     
     return patients;

@@ -48,15 +48,6 @@ function StaffDashboard() {
   const [operationDateFilter, setOperationDateFilter] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
   const [expandedIglCells, setExpandedIglCells] = useState(new Set());
-  // Demo-only: timestamps recorded in-session. Replace with insurance.date_modified from Directus when backend tracks this.
-  const [iglStatusTimestamps, setIglStatusTimestamps] = useState(() => {
-    try {
-      const saved = localStorage.getItem("iglStatusTimestamps");
-      return saved ? new Map(JSON.parse(saved)) : new Map();
-    } catch {
-      return new Map();
-    }
-  });
   const [addOnModalOpen, setAddOnModalOpen] = useState(false);
   const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
 
@@ -88,16 +79,6 @@ function StaffDashboard() {
     fetchPatients();
   }, [user, initializing]);
 
-  const saveTimestamp = (insuranceId) => {
-    setIglStatusTimestamps((prev) => {
-      const next = new Map(prev);
-      next.set(insuranceId, new Date().toISOString());
-      localStorage.setItem("iglStatusTimestamps", JSON.stringify([...next]));
-      return next;
-    });
-  };
-
-  
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -123,10 +104,20 @@ function StaffDashboard() {
   };
 
   const formatDateTime = (date) => {
-    if (!date) return '—';
-    return date.toLocaleString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
+    if (!date) return "—";
+
+    // Directus DateTime fields return UTC without 'Z' - add it manually
+    const d =
+      typeof date === "string" && !date.endsWith("Z") && !date.includes("+")
+        ? new Date(date + "Z")
+        : new Date(date);
+
+    return d.toLocaleString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -364,11 +355,19 @@ function StaffDashboard() {
             const updatedInsurance = Array.isArray(patient.insurance)
               ? patient.insurance.map((ins) =>
                   ins.id === selectedInsurance.id
-                    ? { ...ins, IGL_status: newStatus }
+                    ? {
+                        ...ins,
+                        IGL_status: newStatus,
+                        date_updated: new Date().toISOString(),
+                      }
                     : ins,
                 )
               : patient.insurance?.id === selectedInsurance.id
-                ? { ...patient.insurance, IGL_status: newStatus }
+                ? {
+                    ...patient.insurance,
+                    IGL_status: newStatus,
+                    date_updated: new Date().toISOString(),
+                  }
                 : patient.insurance;
             return { ...patient, insurance: updatedInsurance };
           }
@@ -376,7 +375,6 @@ function StaffDashboard() {
         }),
       );
 
-      saveTimestamp(selectedInsurance.id);
       // ADD THIS LINE:
       await sendTelegramNotification(
         `🏥 *IGL Status Updated*\n` +
@@ -420,18 +418,25 @@ function StaffDashboard() {
             const updatedInsurance = Array.isArray(patient.insurance)
               ? patient.insurance.map((ins) =>
                   ins.id === selectedDefermentInsurance.id
-                    ? { ...ins, IGL_status: "Deferment Replied" }
+                    ? {
+                        ...ins,
+                        IGL_status: "Deferment Replied",
+                        date_updated: new Date().toISOString(),
+                      }
                     : ins,
                 )
               : patient.insurance?.id === selectedDefermentInsurance.id
-                ? { ...patient.insurance, IGL_status: "Deferment Replied" }
+                ? {
+                    ...patient.insurance,
+                    IGL_status: "Deferment Replied",
+                    date_updated: new Date().toISOString(),
+                  }
                 : patient.insurance;
             return { ...patient, insurance: updatedInsurance };
           }
           return patient;
         }),
       );
-      saveTimestamp(selectedDefermentInsurance.id);
       // ADD this line after saveTimestamp in handleDefermentSubmit:
       await sendTelegramNotification(
         `🏥 *IGL Status Updated*\n` +
@@ -609,11 +614,15 @@ function StaffDashboard() {
                             </span>
                           </td>
                           <td className="td-gl-service">
-                            {admission?.gl_service === 'in_patient' && (
-                              <span className="status-badge status-Admitted">In Patient</span>
+                            {admission?.gl_service === "in_patient" && (
+                              <span className="status-badge status-Admitted">
+                                In Patient
+                              </span>
                             )}
-                            {admission?.gl_service === 'out_patient' && (
-                              <span className="status-badge status-KIV-Discharged">Out Patient</span>
+                            {admission?.gl_service === "out_patient" && (
+                              <span className="status-badge status-KIV-Discharged">
+                                Out Patient
+                              </span>
                             )}
                             {!admission?.gl_service && <span>N/A</span>}
                           </td>
@@ -668,7 +677,7 @@ function StaffDashboard() {
                                   >
                                     {insurance?.IGL_status || "N/A"}
                                   </span>
-                                  {iglStatusTimestamps.get(insurance?.id) && (
+                                  {insurance?.date_updated && (
                                     <span className="igl-status-time">
                                       <svg
                                         width="10"
@@ -692,13 +701,7 @@ function StaffDashboard() {
                                           strokeLinecap="round"
                                         />
                                       </svg>
-                                      {formatDateTime(
-                                        new Date(
-                                          iglStatusTimestamps.get(
-                                            insurance?.id,
-                                          ),
-                                        ),
-                                      )}
+                                      {formatDateTime(insurance.date_updated)}
                                     </span>
                                   )}
                                 </button>
@@ -884,10 +887,17 @@ function StaffDashboard() {
                           </td>
                           <td>
                             {(() => {
-                              const procs = Array.isArray(patient.Add_on_Procedures)
+                              const procs = Array.isArray(
+                                patient.Add_on_Procedures,
+                              )
                                 ? patient.Add_on_Procedures
-                                : (patient.Add_on_Procedures ? [patient.Add_on_Procedures] : []);
-                              if (!procs.length) return <span style={{ color: '#94a3b8' }}>—</span>;
+                                : patient.Add_on_Procedures
+                                  ? [patient.Add_on_Procedures]
+                                  : [];
+                              if (!procs.length)
+                                return (
+                                  <span style={{ color: "#94a3b8" }}>—</span>
+                                );
                               return (
                                 <button
                                   type="button"
@@ -895,7 +905,8 @@ function StaffDashboard() {
                                   onClick={() => handleOpenAddOnModal(patient)}
                                 >
                                   <span className="igl-badge under-review">
-                                    {procs.length} Procedure{procs.length !== 1 ? 's' : ''}
+                                    {procs.length} Procedure
+                                    {procs.length !== 1 ? "s" : ""}
                                   </span>
                                 </button>
                               );
