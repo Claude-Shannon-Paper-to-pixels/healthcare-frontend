@@ -1,5 +1,31 @@
 import DetailSection from '../DetailSection';
 
+const IGL_FILES = {
+  Approved:  { path: '/approved.pdf',  name: 'approved.pdf' },
+  Declined:  { path: '/declined.pdf',  name: 'declined.pdf' },
+  Deferment: { path: '/DEFERMENT.pdf', name: 'DEFERMENT.pdf' },
+};
+
+function FileCell({ entry }) {
+  if (entry.gl_category !== 'IGL') return <span style={{ color: '#9ca3af' }}>—</span>;
+  const file = IGL_FILES[entry.status];
+  if (!file) return <span style={{ color: '#9ca3af' }}>—</span>;
+  return (
+    <a
+      href={file.path}
+      target="_blank"
+      rel="noreferrer"
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#2563eb', textDecoration: 'none', fontSize: 13 }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      {file.name}
+    </a>
+  );
+}
+
 const STATUS_COLORS = {
   Pending:           { bg: '#fef9c3', color: '#854d0e' },
   Approved:          { bg: '#dcfce7', color: '#166534' },
@@ -106,7 +132,7 @@ function GLTrackingPanel({ entries, loading, error }) {
                     <td style={TD_STYLE}>{entry.gl_category || '—'}</td>
                     <td style={{ ...TD_STYLE, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{formatAmount(entry.amount)}</td>
                     <td style={TD_STYLE}><StatusBadge value={entry.status} /></td>
-                    <td style={{ ...TD_STYLE, color: '#6b7280' }}>—</td>
+                    <td style={TD_STYLE}><FileCell entry={entry} /></td>
                   </tr>
                 ))
               )}
