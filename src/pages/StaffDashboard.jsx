@@ -15,6 +15,7 @@ import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
 import VoiceWidget from './voice/VoiceWidget';
 import KpiCards from './dashboard-widgets/KpiCards';
+import { sendTelegramNotification } from "../utils/telegram";
 
 function StaffDashboard() {
   const navigate = useNavigate();
@@ -95,31 +96,7 @@ function StaffDashboard() {
     });
   };
 
-  const sendTelegramNotification = async (patientName, mrn, newStatus) => {
-    const BOT_TOKEN = "8768105862:AAHdryyODCWHMxm34RQEEr5iq1fuh-EsMPA"; // ← paste your token here
-    const CHAT_ID = "5882947647"; // ← paste your chat id here
-
-    const message =
-      `🏥 *IGL Status Updated*\n` +
-      `👤 Patient: ${patientName}\n` +
-      `🪪 MRN: ${mrn || "N/A"}\n` +
-      `📋 New Status: ${newStatus}\n` +
-      `🕐 Time: ${new Date().toLocaleString("en-GB")}`;
-
-    try {
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: message,
-          parse_mode: "Markdown",
-        }),
-      });
-    } catch (err) {
-      console.error("Telegram notification failed:", err);
-    }
-  };
+  
 
   const fetchPatients = async () => {
     setLoading(true);
@@ -401,9 +378,11 @@ function StaffDashboard() {
       saveTimestamp(selectedInsurance.id);
       // ADD THIS LINE:
       await sendTelegramNotification(
-        selectedIglPatient.patient_name,
-        selectedIglPatient.mrn,
-        newStatus,
+        `🏥 *IGL Status Updated*\n` +
+          `👤 Patient: ${selectedIglPatient.patient_name}\n` +
+          `🪪 MRN: ${selectedIglPatient.mrn || "N/A"}\n` +
+          `📋 New Status: ${newStatus}\n` +
+          `🕐 Time: ${new Date().toLocaleString("en-GB")}`,
       );
       setIglModalOpen(false);
       setSelectedInsurance(null);
@@ -454,9 +433,11 @@ function StaffDashboard() {
       saveTimestamp(selectedDefermentInsurance.id);
       // ADD this line after saveTimestamp in handleDefermentSubmit:
       await sendTelegramNotification(
-        selectedDefermentPatient.patient_name,
-        selectedDefermentPatient.mrn,
-        "Deferment Replied",
+        `🏥 *IGL Status Updated*\n` +
+          `👤 Patient: ${selectedDefermentPatient.patient_name}\n` +
+          `🪪 MRN: ${selectedDefermentPatient.mrn || "N/A"}\n` +
+          `📋 New Status: Deferment Replied\n` +
+          `🕐 Time: ${new Date().toLocaleString("en-GB")}`,
       );
       // Keep modal open so the user can see the email send status; update insurance state to reflect the new status
       setSelectedDefermentInsurance((prev) =>
