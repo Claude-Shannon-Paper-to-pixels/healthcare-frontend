@@ -159,7 +159,11 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   };
 
   const confirmGlService = () => {
-    setAdmissionData(prev => ({ ...prev, gl_service: pendingGlService }));
+    setAdmissionData(prev => ({
+      ...prev,
+      gl_service: pendingGlService,
+      expected_days_of_stay: pendingGlService === 'out_patient' ? '0' : (prev.expected_days_of_stay === '0' ? '' : prev.expected_days_of_stay),
+    }));
     if (errors.gl_service) setErrors(prev => ({ ...prev, gl_service: '' }));
     setShowGLServiceModal(false);
   };
@@ -182,9 +186,6 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
     // if (!admissionData.type_of_accommodation) {
     //   newErrors.type_of_accommodation = 'Type of accommodation is required';
     // }
-    if (!admissionData.expected_days_of_stay) {
-      newErrors.expected_days_of_stay = 'Expected length of stay is required';
-    }
     if (admissionData.estimated_cost_RM === '' || admissionData.estimated_cost_RM === null) {
       newErrors.estimated_cost_RM = 'Estimated cost is required';
     }
@@ -943,17 +944,17 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
         <div style={styles.formRow}>
           <div style={styles.formGroup}>
             <label style={styles.label}>
-              Expected Length of Stay (Days) <span style={styles.required}>*</span>
+              Expected Length of Stay (Days)
             </label>
             <input
               type="number"
               name="expected_days_of_stay"
-              value={admissionData.expected_days_of_stay}
+              value={admissionData.gl_service === 'out_patient' ? '0' : admissionData.expected_days_of_stay}
               onChange={handleChange}
               min="1"
               style={errors.expected_days_of_stay ? styles.inputError : styles.input}
               placeholder="Number of days"
-              disabled={loading}
+              disabled={loading || admissionData.gl_service === 'out_patient'}
             />
             {errors.expected_days_of_stay && (
               <span style={styles.errorMessage}>{errors.expected_days_of_stay}</span>

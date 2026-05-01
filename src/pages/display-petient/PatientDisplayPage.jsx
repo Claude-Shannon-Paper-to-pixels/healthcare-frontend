@@ -799,6 +799,7 @@ function PatientDisplayPage() {
 
   const isStaffView = isStaff();
   const canManageClinical = isAdmin() || isDoctor();
+  const canChangeStatus = isAdmin();
   const summaryChips = [
     { label: 'MRN', value: patient.mrn || 'N/A' },
     { label: 'Admission', value: admission?.status || 'N/A' },
@@ -938,6 +939,7 @@ function PatientDisplayPage() {
             addOnLoading={addOnLoading}
             addOnError={addOnError}
             canManageClinical={canManageClinical}
+            canChangeStatus={canChangeStatus}
             showCreateAddOn={showCreateAddOn}
             setShowCreateAddOn={(val) => {
               setShowCreateAddOn(val);
