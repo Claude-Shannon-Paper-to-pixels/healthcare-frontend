@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { initAuth } from '../../api/auth';
 import { getPatient, updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
 import { createReferralLetter } from '../../api/Referralletter';
@@ -602,8 +603,9 @@ function PatientDisplayPage() {
       await updatePatient(id, formData);
       setEditingSection(null);
       refreshPatient();
+      toast.success('Patient information updated.');
     } catch (err) {
-      // error handled by hook
+      toast.error(err.message || 'Failed to update patient.');
     } finally {
       setSavingSection(null);
     }
@@ -619,8 +621,9 @@ function PatientDisplayPage() {
       await syncTotalFee(payload);
       setEditingSection(null);
       refreshPatient();
+      toast.success('Admission details saved.');
     } catch (err) {
-      // error handled by hook
+      toast.error(err.message || 'Failed to save admission details.');
     } finally {
       setSavingSection(null);
     }
@@ -651,9 +654,12 @@ function PatientDisplayPage() {
       await refreshGLTracking();
       setEditingSection(null);
       await refreshPatient();
+      toast.success('Insurance & GL details saved.');
     } catch (err) {
       console.error('Insurance update failed', err);
-      setError(err.message || 'Failed to update insurance.'); // Set error message on failure
+      const msg = err.message || 'Failed to update insurance.';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSavingSection(null);
     }
@@ -667,6 +673,7 @@ function PatientDisplayPage() {
       await syncTotalFee(formData);
       setShowCreateAdmission(false);
       await refreshPatient();
+      toast.success('Admission created successfully.');
 
       // If Guarantee Letter, fix the backend auto-created insurance IGL status to Not_submitted
       if (formData.financial_class === 'Guarantee Letter') {
@@ -692,7 +699,7 @@ function PatientDisplayPage() {
         }
       }
     } catch (err) {
-      // error handled by hook
+      toast.error(err.message || 'Failed to create admission.');
     } finally {
       setSavingSection(null);
     }
@@ -714,8 +721,9 @@ function PatientDisplayPage() {
       setShowCreateInsurance(false);
       await refreshPatient();
       await refreshGLTracking();
+      toast.success('Insurance record created successfully.');
     } catch (err) {
-      // error handled by hook
+      toast.error(err.message || 'Failed to create insurance record.');
     } finally {
       setSavingSection(null);
     }
@@ -728,8 +736,11 @@ function PatientDisplayPage() {
       await createReferralLetter(formData);
       setShowCreateReferral(false);
       await refreshReferralLetters();
+      toast.success('Referral letter created.');
     } catch (err) {
-      setReferralError(err.message || 'Failed to create referral letter');
+      const msg = err.message || 'Failed to create referral letter.';
+      setReferralError(msg);
+      toast.error(msg);
     } finally {
       setSavingSection(null);
     }
@@ -748,8 +759,11 @@ function PatientDisplayPage() {
       });
       await refreshAddOnProcedures();
       await refreshGLTracking();
+      toast.success('Add-on procedure status updated.');
     } catch (err) {
-      setAddOnError(err.message || 'Failed to update status');
+      const msg = err.message || 'Failed to update status.';
+      setAddOnError(msg);
+      toast.error(msg);
     }
   };
 
@@ -768,12 +782,15 @@ function PatientDisplayPage() {
       setShowCreateAddOn(false);
       await refreshAddOnProcedures();
       await refreshGLTracking();
+      toast.success('Add-on procedure created.');
       setAddOnEmailStatus('sending');
       sendAddOnEmail(patient, insurance, formData)
         .then(() => setAddOnEmailStatus('sent'))
         .catch(() => setAddOnEmailStatus('failed'));
     } catch (err) {
-      setAddOnError(err.message || 'Failed to create add-on procedure');
+      const msg = err.message || 'Failed to create add-on procedure.';
+      setAddOnError(msg);
+      toast.error(msg);
     } finally {
       setSavingSection(null);
     }
