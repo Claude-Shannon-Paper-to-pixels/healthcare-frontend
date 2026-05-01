@@ -27,6 +27,7 @@ function FileCell({ entry }) {
 }
 
 const STATUS_COLORS = {
+  Not_submitted:     { bg: '#f1f5f9', color: '#475569' },
   Pending:           { bg: '#fef9c3', color: '#854d0e' },
   Approved:          { bg: '#dcfce7', color: '#166534' },
   Deferment:         { bg: '#ffedd5', color: '#9a3412' },

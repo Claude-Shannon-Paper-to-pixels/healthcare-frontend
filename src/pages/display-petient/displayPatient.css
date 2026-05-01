@@ -325,6 +325,11 @@
   color: #475569;
 }
 
+.igl-Not_submitted {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 .igl-Approved,
 .igl-Approved\ with\ GL {
   background: #dcfce7;

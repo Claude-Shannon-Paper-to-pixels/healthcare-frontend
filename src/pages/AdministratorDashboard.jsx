@@ -442,6 +442,7 @@ function AdminDashboard() {
 
   const iglChartData = useMemo(() => {
     const counts = {
+      Not_submitted: 0,
       Pending: 0,
       Approved: 0,
       Rejected: 0,
@@ -452,7 +453,8 @@ function AdminDashboard() {
     filteredPatients.forEach((patient) => {
       const insurance = getInsurance(patient.insurance);
       const status = (insurance?.IGL_status || "").toLowerCase();
-      if (status.includes("reject")) counts.Rejected += 1;
+      if (status === "not_submitted") counts.Not_submitted += 1;
+      else if (status.includes("reject")) counts.Rejected += 1;
       else if (status.includes("partial")) counts["Partial Approval"] += 1;
       else if (status.includes("review")) counts["Under Review"] += 1;
       else if (status.includes("cancel")) counts.Cancelled += 1;
@@ -460,6 +462,7 @@ function AdminDashboard() {
       else counts.Pending += 1;
     });
     return [
+      { name: "Not_submitted", value: counts.Not_submitted },
       { name: "Pending", value: counts.Pending },
       { name: "Approved", value: counts.Approved },
       { name: "Rejected", value: counts.Rejected },

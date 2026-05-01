@@ -10,6 +10,7 @@ export default function GeneratePafModal({
   admission,
   insurance,
   onClose,
+  onPafSubmitted,
 }) {
   const { loading, error, success, phase, pollInfo, pdfUrl, generate, reset } =
     useGeneratePAF();
@@ -91,6 +92,9 @@ export default function GeneratePafModal({
      }
 
      setEmailSuccess(true);
+     if (onPafSubmitted) {
+       onPafSubmitted().catch(() => {});
+     }
      setTimeout(() => {
        setEmailSuccess(false);
        reset();

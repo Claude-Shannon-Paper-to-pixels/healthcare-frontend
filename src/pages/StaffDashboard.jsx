@@ -194,18 +194,20 @@ function StaffDashboard() {
   }, [patients, normalizedSearch, operationDateFilter]);
 
   const iglChartData = useMemo(() => {
-    const counts = { 
-      Pending: 0, 
-      Approved: 0, 
-      Rejected: 0, 
-      'Partial Approval': 0, 
-      'Under Review': 0, 
-      Cancelled: 0 
+    const counts = {
+      'Not_submitted': 0,
+      Pending: 0,
+      Approved: 0,
+      Rejected: 0,
+      'Partial Approval': 0,
+      'Under Review': 0,
+      Cancelled: 0
     };
     filteredPatients.forEach((patient) => {
       const insurance = getInsurance(patient.insurance);
       const status = (insurance?.IGL_status || '').toLowerCase();
-      if (status.includes('reject')) counts.Rejected += 1;
+      if (status === 'not_submitted') counts['Not_submitted'] += 1;
+      else if (status.includes('reject')) counts.Rejected += 1;
       else if (status.includes('partial')) counts['Partial Approval'] += 1;
       else if (status.includes('review')) counts['Under Review'] += 1;
       else if (status.includes('cancel')) counts.Cancelled += 1;
@@ -213,6 +215,7 @@ function StaffDashboard() {
       else counts.Pending += 1;
     });
     return [
+      { name: 'Not_submitted', value: counts['Not_submitted'] },
       { name: 'Pending', value: counts.Pending },
       { name: 'Approved', value: counts.Approved },
       { name: 'Rejected', value: counts.Rejected },

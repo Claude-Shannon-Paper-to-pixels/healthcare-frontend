@@ -733,6 +733,21 @@ function PatientDisplayPage() {
     }
   };
 
+  const handlePafSubmitted = async () => {
+    if (insurance?.IGL_status === 'Not_submitted' && insurance?.id) {
+      await updatePatientInsurance(insurance.id, { IGL_status: 'Pending' });
+      await createGLTrackingEntry({
+        gl_category: 'IGL',
+        amount: insurance?.estimated_cost ?? null,
+        status: 'Pending',
+        patient: id,
+        insurance: insurance.id,
+      });
+      await refreshGLTracking();
+      await refreshPatient();
+    }
+  };
+
   if (!user || loading) return <PatientLoading />;
   if (!patient) return <div className="error-message">Patient not found</div>;
 
@@ -913,6 +928,7 @@ function PatientDisplayPage() {
             admission={admission}
             insurance={insurance}
             onClose={() => setShowPafModal(false)}
+            onPafSubmitted={handlePafSubmitted}
           />
         )}
       </div>
