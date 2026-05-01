@@ -1,6 +1,7 @@
 // src/pages/DashboardPage.jsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getUser } from '../utils/auth';
 
 function DashboardPage() {
@@ -23,7 +24,7 @@ function DashboardPage() {
     else if (user.role?.name === 'Administrator') {
       navigate('/hub-dashboard');
     }else {
-      alert('Unknown user role');
+      toast.error('Unknown user role. Please contact your administrator.');
       navigate('/login');
     }
   }, [navigate]);

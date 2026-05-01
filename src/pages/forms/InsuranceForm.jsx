@@ -653,7 +653,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
               onChange={handleChange}
               style={styles.input}
               placeholder="Enter number of days"
-              min="1"
+              min="0"
               disabled={loading}
             />
           </div>

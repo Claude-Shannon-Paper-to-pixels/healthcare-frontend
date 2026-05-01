@@ -1,6 +1,7 @@
 // src/pages/EditPatientPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { getUser } from '../utils/auth';
 import { initAuth } from '../api/auth';
 import { getPatient, updatePatient } from '../api/patients';
@@ -36,7 +37,7 @@ function EditPatientPage() {
       // Allow both Doctor and Administrator to edit patients
       const allowedRoles = ['Doctor', 'Administrator'];
       if (!allowedRoles.includes(authenticatedUser.role?.name)) {
-        alert('Only doctors and administrators can edit patients');
+        toast.error('Only doctors and administrators can edit patients.');
         navigate('/dashboard');
         return;
       }
@@ -86,9 +87,10 @@ function EditPatientPage() {
 
     try {
       await updatePatient(id, formData);
-      alert('Patient updated successfully!');
+      toast.success('Patient updated successfully.');
       navigate('/dashboard');
     } catch (err) {
+      toast.error(err.message || 'Failed to update patient.');
       setError(err.message);
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 // src/pages/CreatePatientPage.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { initAuth } from '../../api/auth';
 import { createPatient } from '../../api/patients';
 import Navbar from '../../components/Navbar';
@@ -41,7 +42,7 @@ function CreatePatientPage() {
       
       const allowedRoles = ['Doctor', 'Administrator'];
       if (!allowedRoles.includes(authenticatedUser.role?.name)) {
-        alert('Only doctors and administrators can create patients');
+        toast.error('Only doctors and administrators can create patients.');
         navigate('/dashboard');
         return;
       }
@@ -88,11 +89,13 @@ function CreatePatientPage() {
       );
       console.log('Patient with admission created:', patient);
 
-      alert('Patient and admission created successfully!');
+      toast.success('Patient and admission created successfully.');
       navigate(`/patients/view/${patient.id}`);
     } catch (err) {
       console.error('Error creating admission:', err);
-      setError(err.message || 'Failed to create patient with admission...');
+      const msg = err.message || 'Failed to create patient with admission.';
+      toast.error(msg);
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -192,7 +195,7 @@ function CreatePatientPage() {
             type="button"
             onClick={() => {
               if (!patientDraft) {
-                alert('Please complete Step 1 (Patient Info) first.');
+                toast.error('Please complete Step 1 (Patient Info) first.');
                 setActiveStep(1);
                 return;
               }
