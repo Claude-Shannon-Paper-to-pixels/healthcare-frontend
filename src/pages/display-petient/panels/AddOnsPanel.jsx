@@ -8,6 +8,7 @@ function AddOnsPanel({
   addOnLoading,
   addOnError,
   canManageClinical,
+  canChangeStatus,
   showCreateAddOn,
   setShowCreateAddOn,
   handleCreateAddOnProcedure,
@@ -102,6 +103,7 @@ function AddOnsPanel({
         loading={addOnLoading}
         error={addOnError}
         canManageClinical={canManageClinical}
+        canChangeStatus={canChangeStatus}
         onStatusChange={onStatusChange}
         patient={patient}
       />
