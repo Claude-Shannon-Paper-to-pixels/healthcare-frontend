@@ -1,8 +1,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import ChartCard from './ChartCard';
 
-// Colors for all 6 IGL statuses
 const COLORS = {
+  'Not_submitted': '#94a3b8',   // Slate - not yet submitted
   'Pending': '#f59e0b',         // Amber/Yellow
   'Approved': '#16a34a',        // Green
   'Rejected': '#ef4444',        // Red

@@ -1116,6 +1116,10 @@ body {
 }
 
 /* Missing badge colours for deferment statuses */
+.igl-badge.not_submitted {
+  color: #475569;
+}
+
 .igl-badge.deferment {
   color: #b45309;
 }
