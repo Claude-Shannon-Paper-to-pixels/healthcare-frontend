@@ -20,7 +20,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
     Policy_No: '',
     tpa_name: '',
     IGL_number: '',
-    IGL_status: '',
+    IGL_status: 'Not_submitted',
     estimated_cost: '',
     expected_days_of_stay: '',
 
@@ -114,11 +114,18 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
     pregnancy_duration: ''
   });
 
+  const resolveIglStatus = (data) => {
+    // Auto-created insurance stubs (no tpa_name yet) should default to Not_submitted
+    if (!data.tpa_name && data.IGL_status !== 'Not_submitted') return 'Not_submitted';
+    return data.IGL_status || 'Not_submitted';
+  };
+
   const [insuranceData, setInsuranceData] = useState(() => {
     if (!initialData) return getDefaultState();
     return {
       ...getDefaultState(),
       ...initialData,
+      IGL_status: resolveIglStatus(initialData),
       accident_date: normalizeDateInput(initialData.accident_date),
       illness_symptoms_first_appeared_on_date: normalizeDateInput(initialData.illness_symptoms_first_appeared_on_date),
       date_first_consulted: normalizeDateInput(initialData.date_first_consulted),
@@ -161,6 +168,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
     setInsuranceData({
       ...getDefaultState(),
       ...initialData,
+      IGL_status: resolveIglStatus(initialData),
       accident_date: normalizeDateInput(initialData.accident_date),
       illness_symptoms_first_appeared_on_date: normalizeDateInput(initialData.illness_symptoms_first_appeared_on_date),
       date_first_consulted: normalizeDateInput(initialData.date_first_consulted),

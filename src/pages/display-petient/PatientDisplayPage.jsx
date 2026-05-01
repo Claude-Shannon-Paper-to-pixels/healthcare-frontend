@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { initAuth } from '../../api/auth';
-import { updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
+import { getPatient, updateAdmissionRecord, updatePatient, updatePatientInsurance } from '../../api/patients';
 import { createReferralLetter } from '../../api/Referralletter';
 import { createAddOnProcedure, updateAddOnProcedure } from '../../api/addOnProcedures';
 import { createGLTrackingEntry } from '../../api/glTracking';
@@ -168,6 +168,27 @@ function PatientDisplayPage() {
   useEffect(() => {
     setShowCreateInsurance(!insurance && requiresInsurance);
   }, [insurance, requiresInsurance]);
+
+  // Fix auto-created insurance stubs: backend creates with Directus default 'Pending',
+  // but it should be Not_submitted until PAF is submitted.
+  useEffect(() => {
+    if (!user || !insurance?.id || !admission) return;
+    if (admission.financial_class !== 'Guarantee Letter') return;
+    if (insurance.IGL_status === 'Not_submitted' || insurance.tpa_name) return;
+    updatePatientInsurance(insurance.id, { IGL_status: 'Not_submitted' })
+      .then(async () => {
+        await createGLTrackingEntry({
+          gl_category: 'IGL',
+          amount: insurance.estimated_cost ?? null,
+          status: 'Not_submitted',
+          patient: id,
+          insurance: insurance.id,
+        });
+        await refreshPatient();
+        await refreshGLTracking();
+      })
+      .catch(() => {});
+  }, [insurance?.id, insurance?.IGL_status, admission?.financial_class, user]);
 
   const admissionInitialData = useMemo(() => {
     if (!admission) return null;
@@ -646,6 +667,30 @@ function PatientDisplayPage() {
       await syncTotalFee(formData);
       setShowCreateAdmission(false);
       await refreshPatient();
+
+      // If Guarantee Letter, fix the backend auto-created insurance IGL status to Not_submitted
+      if (formData.financial_class === 'Guarantee Letter') {
+        try {
+          const freshPatient = await getPatient(id);
+          const autoInsurance = Array.isArray(freshPatient?.insurance)
+            ? freshPatient.insurance[0]
+            : freshPatient?.insurance;
+          if (autoInsurance?.id && autoInsurance.IGL_status !== 'Not_submitted') {
+            await updatePatientInsurance(autoInsurance.id, { IGL_status: 'Not_submitted' });
+            await createGLTrackingEntry({
+              gl_category: 'IGL',
+              amount: autoInsurance.estimated_cost ?? null,
+              status: 'Not_submitted',
+              patient: id,
+              insurance: autoInsurance.id,
+            });
+            await refreshPatient();
+            await refreshGLTracking();
+          }
+        } catch {
+          // insurance may not exist yet if backend is async — ignore silently
+        }
+      }
     } catch (err) {
       // error handled by hook
     } finally {
@@ -657,11 +702,12 @@ function PatientDisplayPage() {
     setSavingSection('create-insurance');
     setError('');
     try {
-      const createdInsurance = await directus.request(createItem('insurance', formData));
+      const insurancePayload = { ...formData, IGL_status: formData.IGL_status || 'Not_submitted' };
+      const createdInsurance = await directus.request(createItem('insurance', insurancePayload));
       await createGLTrackingEntry({
         gl_category: 'IGL',
-        amount: formData.estimated_cost ?? null,
-        status: formData.IGL_status || null,
+        amount: insurancePayload.estimated_cost ?? null,
+        status: insurancePayload.IGL_status,
         patient: id,
         insurance: createdInsurance.id,
       });
