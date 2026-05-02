@@ -13,7 +13,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   };
 
   const getDefaultState = () => ({
-    status: 'Admission Pending',
+    status: 'Admission pending',
     admission_date: new Date().toISOString().split('T')[0],
     admission_time: '',
     admission_to: '',
@@ -577,12 +577,11 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
               // DISABLED if loading OR if user is NOT Admin/Staff
               disabled={loading || !canModifyStatus}
             >
-              <option value="Admission Pending">Admission Pending</option>
+              <option value="Admission pending">Admission pending</option>
               <option value="Admitted">Admitted</option>
-              <option value="KIV Discharged">KIV Discharged</option>
-              <option value="Today Discharged">Today Discharged</option>
-              <option value="Discharge Pending">Discharge Pending</option>
-              <option value="Tomorrow Discharge">Tomorrow Discharge</option>
+              <option value="Today discharge">Today discharge</option>
+              <option value="Tomorrow discharge">Tomorrow discharge</option>
+              <option value="Discharged">Discharged</option>
             </select>
             {errors.status && <span style={styles.errorMessage}>{errors.status}</span>}
           </div>

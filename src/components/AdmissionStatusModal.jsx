@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import '../pages/bedcollection/assignBedModal.css';
 
 const DEFAULT_STATUSES = [
-  'Admission Pending',
+  'Admission pending',
   'Admitted',
-  'Discharge Pending',
-  'Today Discharged',
-  'KIV Discharged',
-  'Tomorrow Discharge'
+  'Today discharge',
+  'Tomorrow discharge',
+  'Discharged'
 ];
 
 function AdmissionStatusModal({
