@@ -1,0 +1,281 @@
+/* ─── Wrapper & Card ─────────────────────────────────── */
+.df-wrapper {
+  padding: 8px 0 32px;
+}
+
+.df-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Header ─────────────────────────────────────────── */
+.df-header {
+  background: linear-gradient(135deg, #e8f5f2 0%, #d1ede8 100%);
+  border-bottom: 1.5px solid #b2ddd5;
+  padding: 24px 28px 20px;
+  text-align: center;
+}
+
+.df-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f766e;
+  margin: 0 0 6px;
+}
+
+.df-subtitle {
+  font-size: 0.875rem;
+  color: #0d9488;
+  margin: 0;
+}
+
+/* ─── MRN Badge ──────────────────────────────────────── */
+.df-mrn-badge {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: #fff;
+  border: 1.5px solid #0d9488;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 8px;
+}
+
+/* ─── Form Body ──────────────────────────────────────── */
+.df-body {
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Two-column Row ─────────────────────────────────── */
+.df-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .df-row {
+    grid-template-columns: 1fr;
+  }
+  .df-mrn-badge {
+    position: static;
+    display: inline-block;
+    margin: 12px 20px 0;
+  }
+}
+
+/* ─── Field ──────────────────────────────────────────── */
+.df-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.df-field.df-full {
+  grid-column: 1 / -1;
+}
+
+/* ─── Label ──────────────────────────────────────────── */
+.df-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.df-required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.df-optional {
+  font-weight: 400;
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* ─── Input with icon ────────────────────────────────── */
+.df-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.df-input-icon {
+  position: absolute;
+  left: 11px;
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.df-input {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.df-input:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.df-input.df-date {
+  padding-left: 12px;
+}
+
+/* ─── Select ─────────────────────────────────────────── */
+.df-select {
+  padding: 9px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.df-select:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+/* ─── Textarea ───────────────────────────────────────── */
+.df-textarea {
+  padding: 10px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #fff;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.df-textarea:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+/* ─── Error states ───────────────────────────────────── */
+.df-error-field {
+  border-color: #dc2626 !important;
+}
+
+.df-error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-top: 2px;
+}
+
+/* ─── Radio group ────────────────────────────────────── */
+.df-radio-group {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+}
+
+.df-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.9rem;
+  color: #374151;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.df-radio-label input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #0d9488;
+  cursor: pointer;
+}
+
+/* ─── Death section ──────────────────────────────────── */
+.df-death-section {
+  margin-top: 16px;
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Actions ────────────────────────────────────────── */
+.df-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.df-submit-btn {
+  background: #0f766e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+
+.df-submit-btn:hover:not(:disabled) {
+  background: #0d9488;
+  transform: translateY(-1px);
+}
+
+.df-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.df-cancel-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.df-cancel-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.df-cancel-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}

@@ -238,12 +238,11 @@ function DoctorDashboard() {
 
     // Prefer a sensible display order for known statuses
     const preferredOrder = [
-      'Admission Pending',
+      'Admission pending',
       'Admitted',
-      'Discharge Pending',
-      'Today Discharged',
-      'KIV Discharged',
-      'Tomorrow Discharge'
+      'Today discharge',
+      'Tomorrow discharge',
+      'Discharged'
     ];
 
     const result = [];

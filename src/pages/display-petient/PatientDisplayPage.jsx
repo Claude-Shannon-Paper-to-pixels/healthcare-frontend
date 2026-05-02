@@ -6,6 +6,7 @@ import { getPatient, updateAdmissionRecord, updatePatient, updatePatientInsuranc
 import { createReferralLetter } from '../../api/Referralletter';
 import { createAddOnProcedure, updateAddOnProcedure } from '../../api/addOnProcedures';
 import { createGLTrackingEntry } from '../../api/glTracking';
+import { createDischargeRecord, updateDischargeRecord } from '../../api/discharge';
 import { sendAddOnEmail } from '../../utils/sendAddOnEmail';
 import { isAdmin, isDoctor, isStaff } from '../../utils/auth';
 import directus from '../../api/directus';
@@ -15,6 +16,7 @@ import usePatient from '../../hooks/usePatient';
 import useReferralLetters from '../../hooks/useReferralLetters';
 import useAddOnProcedures from '../../hooks/useAddOnProcedures';
 import useGLTracking from '../../hooks/useGLTracking';
+import useDischarge from '../../hooks/useDischarge';
 import HeaderActions from './panels/HeaderActions';
 import OverviewPanel from './panels/OverviewPanel';
 import AdmissionPanel from './panels/AdmissionPanel';
@@ -22,6 +24,7 @@ import InsurancePanel from './panels/InsurancePanel';
 import ReferralsPanel from './panels/ReferralsPanel';
 import AddOnsPanel from './panels/AddOnsPanel';
 import GLTrackingPanel from './panels/GLTrackingPanel';
+import DischargePanel from './panels/DischargePanel';
 import PatientHeader from './PatientHeader';
 import SectionTabs from './SectionTabs';
 import SectionSearch from './SectionSearch';
@@ -84,6 +87,13 @@ function PatientDisplayPage() {
     error: glError,
     refresh: refreshGLTracking
   } = useGLTracking(id, Boolean(user));
+
+  const {
+    discharge,
+    loading: dischargeLoading,
+    error: dischargeError,
+    refresh: refreshDischarge
+  } = useDischarge(id, Boolean(user));
 
   const [addOnEmailStatus, setAddOnEmailStatus] = useState('idle'); // 'idle' | 'sending' | 'sent' | 'failed'
 
@@ -811,6 +821,24 @@ function PatientDisplayPage() {
     }
   };
 
+  const handleSubmitDischarge = async (formData, existingId) => {
+    setSavingSection('discharge');
+    try {
+      if (existingId) {
+        await updateDischargeRecord(existingId, formData);
+      } else {
+        await createDischargeRecord(formData);
+      }
+      await refreshDischarge();
+      toast.success(existingId ? 'Discharge record updated.' : 'Discharge form submitted.');
+    } catch (err) {
+      toast.error(err.message || 'Failed to save discharge record.');
+      throw err;
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
   if (!user || loading) return <PatientLoading />;
   if (!patient) return <div className="error-message">Patient not found</div>;
 
@@ -834,6 +862,7 @@ function PatientDisplayPage() {
     { key: 'insurance', label: 'Insurance', hidden: !admission },
     { key: 'add-ons', label: 'Add-on Procedures' },
     { key: 'referrals', label: 'Referrals' },
+    { key: 'discharge', label: 'Discharge' },
     { key: 'gl-tracking', label: 'GL Tracking' }
   ].filter((tab) => !tab.hidden);
 
@@ -968,6 +997,19 @@ function PatientDisplayPage() {
             addOnEmailStatus={addOnEmailStatus}
             onStatusChange={handleUpdateAddOnStatus}
             patient={patient}
+          />
+        )}
+
+        {activeTab === 'discharge' && (
+          <DischargePanel
+            patient={patient}
+            admission={admission}
+            discharge={discharge}
+            dischargeLoading={dischargeLoading}
+            dischargeError={dischargeError}
+            canEdit={isAdmin() || isStaff()}
+            onSubmitDischarge={handleSubmitDischarge}
+            savingSection={savingSection}
           />
         )}
 
