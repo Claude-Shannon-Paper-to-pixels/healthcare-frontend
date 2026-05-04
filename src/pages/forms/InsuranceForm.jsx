@@ -237,6 +237,14 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
       newErrors.admission_reason = 'Admission reason is required';
     }
 
+    if (!insuranceData.condition_be_managed) {
+      newErrors.condition_be_managed = 'This field is required';
+    }
+
+    if (insuranceData.condition_be_managed === 'No' && !insuranceData.reason_for_admission?.trim()) {
+      newErrors.reason_for_admission = 'Reason for admission is required';
+    }
+
     setErrors(newErrors);
 
     // Debugging validation errors
@@ -1546,7 +1554,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
        
         
         <div style={styles.formGroup}>
-          <label style={styles.label}>Can Condition Be Managed</label>
+          <label style={styles.label}>Can Condition Be Managed <span style={styles.required}>*</span></label>
           <div style={styles.radioGroup}>
             <label style={styles.radioLabel}>
               <input
@@ -1573,17 +1581,18 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
               No
             </label>
           </div>
+          {errors.condition_be_managed && <span style={styles.errorMessage}>{errors.condition_be_managed}</span>}
         </div>
 
         {insuranceData.condition_be_managed === 'No' && (
           <div style={styles.formGroup}>
-            <label style={styles.label}>If No please provide reason for admission</label>
+            <label style={styles.label}>If No please provide reason for admission <span style={styles.required}>*</span></label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <textarea
                 name="reason_for_admission"
                 value={insuranceData.reason_for_admission}
                 onChange={handleChange}
-                style={styles.textarea}
+                style={errors.reason_for_admission ? styles.inputError : styles.textarea}
                 placeholder="Enter reason why condition cannot be managed"
                 disabled={loading}
               />
@@ -1594,6 +1603,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
                 disabled={loading || !recognitionSupported}
               />
             </div>
+            {errors.reason_for_admission && <span style={styles.errorMessage}>{errors.reason_for_admission}</span>}
           </div>
         )}
 
