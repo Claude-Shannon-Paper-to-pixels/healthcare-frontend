@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import DetailSection from '../DetailSection';
 import DischargeForm from '../../Discharge/DischargeForm';
+import { generateDischargePDF } from '../../GeneratePAF/dischargeApi';
 
 function fmtDate(dateStr) {
   if (!dateStr) return '—';
@@ -48,7 +49,7 @@ function Row({ label, value }) {
   );
 }
 
-function DischargeReadView({ discharge, onEdit, canEdit }) {
+function DischargeReadView({ discharge, onEdit, canEdit, onSubmitDischarge, submitting, submitError, submitSuccess }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
@@ -58,13 +59,33 @@ function DischargeReadView({ discharge, onEdit, canEdit }) {
             Submitted on {fmtDateTime(discharge.date_created)}
           </div>
         </div>
-        {canEdit && (
-          <button type="button" className="icon-button" onClick={onEdit}>
-            <span className="icon">✎</span>
-            Edit Discharge Form
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {canEdit && (
+            <button type="button" className="icon-button" onClick={onEdit}>
+              <span className="icon">✎</span>
+              Edit Discharge Form
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={onSubmitDischarge}
+            disabled={submitting}
+          >
+            {submitting ? 'Submitting...' : 'Submit Discharge'}
           </button>
-        )}
+        </div>
       </div>
+      {submitError && (
+        <div style={{ marginBottom: 12, padding: '10px 14px', background: '#fee2e2', color: '#dc2626', borderRadius: 8, fontSize: 13 }}>
+          {submitError}
+        </div>
+      )}
+      {submitSuccess && (
+        <div style={{ marginBottom: 12, padding: '10px 14px', background: '#d1fae5', color: '#065f46', borderRadius: 8, fontSize: 13 }}>
+          Discharge submitted successfully.
+        </div>
+      )}
 
       <Row label="When to Discharge" value={discharge.discharge_timing} />
       <Row label="Undertaking Letter Ref No" value={discharge.undertaking_letter_ref_no} />
@@ -91,6 +112,7 @@ function DischargeReadView({ discharge, onEdit, canEdit }) {
 function DischargePanel({
   patient,
   admission,
+  insurance,
   discharge,
   dischargeLoading,
   dischargeError,
@@ -99,6 +121,23 @@ function DischargePanel({
   savingSection
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  async function handleSubmitDischargePDF() {
+    setSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    try {
+      await generateDischargePDF(patient, admission, insurance, discharge.id);
+      setSubmitSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'Failed to submit discharge. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <DetailSection
@@ -123,6 +162,10 @@ function DischargePanel({
           discharge={discharge}
           onEdit={() => setIsEditing(true)}
           canEdit={canEdit}
+          onSubmitDischarge={handleSubmitDischargePDF}
+          submitting={submitting}
+          submitError={submitError}
+          submitSuccess={submitSuccess}
         />
       )}
 
