@@ -1004,6 +1004,7 @@ function PatientDisplayPage() {
           <DischargePanel
             patient={patient}
             admission={admission}
+            insurance={insurance}
             discharge={discharge}
             dischargeLoading={dischargeLoading}
             dischargeError={dischargeError}
