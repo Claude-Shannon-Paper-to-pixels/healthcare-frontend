@@ -147,10 +147,16 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   };
 
   const handleFinancialClassChange = (value) => {
-    setAdmissionData(prev => ({ ...prev, financial_class: value, gl_service: '' }));
-    if (errors.financial_class) setErrors(prev => ({ ...prev, financial_class: '' }));
-    setPendingGlService(value === 'Self-Pay' ? 'in_patient' : '');
-    setShowGLServiceModal(true);
+    if (value === 'Self-Pay') {
+      setAdmissionData(prev => ({ ...prev, financial_class: value, gl_service: 'in_patient' }));
+      if (errors.financial_class) setErrors(prev => ({ ...prev, financial_class: '' }));
+      if (errors.gl_service) setErrors(prev => ({ ...prev, gl_service: '' }));
+    } else {
+      setAdmissionData(prev => ({ ...prev, financial_class: value, gl_service: '' }));
+      if (errors.financial_class) setErrors(prev => ({ ...prev, financial_class: '' }));
+      setPendingGlService('');
+      setShowGLServiceModal(true);
+    }
   };
 
   const openGLServiceModal = () => {
@@ -169,9 +175,6 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   };
 
   const cancelGlService = () => {
-    if (admissionData.financial_class === 'Self-Pay') {
-      setAdmissionData(prev => ({ ...prev, gl_service: 'in_patient' }));
-    }
     setShowGLServiceModal(false);
   };
 
@@ -532,7 +535,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
                   </button>
                 )}
               </div>
-            ) : (
+            ) : admissionData.financial_class !== 'Self-Pay' ? (
               <div>
                 <button
                   type="button"
@@ -555,7 +558,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
                 </button>
                 {errors.gl_service && <span style={styles.errorMessage}>{errors.gl_service}</span>}
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -1082,21 +1085,16 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
             <div style={{ marginBottom: '24px' }}>
               <h3 style={{ margin: 0, color: '#2c3e50', fontSize: '1.3rem' }}>Select GL Service</h3>
               <p style={{ margin: '8px 0 0', color: '#7f8c8d', fontSize: '0.9rem' }}>
-                {admissionData.financial_class === 'Self-Pay'
-                  ? 'Self-Pay patients are automatically registered as In-Patient.'
-                  : 'Select the service type for this Guarantee Letter patient.'}
+                Select the service type for this Guarantee Letter patient.
               </p>
             </div>
 
             <div
               style={{
                 ...styles.glCard,
-                ...(pendingGlService === 'in_patient' ? styles.glCardSelected : {}),
-                ...(admissionData.financial_class === 'Self-Pay' ? { cursor: 'default' } : {})
+                ...(pendingGlService === 'in_patient' ? styles.glCardSelected : {})
               }}
-              onClick={() => {
-                if (admissionData.financial_class !== 'Self-Pay') setPendingGlService('in_patient');
-              }}
+              onClick={() => setPendingGlService('in_patient')}
             >
               <div style={{
                 width: '20px',
@@ -1112,45 +1110,30 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
                   Patient will be admitted to a ward
                 </div>
               </div>
-              {admissionData.financial_class === 'Self-Pay' && (
-                <span style={{
-                  marginLeft: 'auto',
-                  backgroundColor: '#ebf5fb',
-                  color: '#2980b9',
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: '600'
-                }}>
-                  Auto-selected
-                </span>
-              )}
             </div>
 
-            {admissionData.financial_class === 'Guarantee Letter' && (
-              <div
-                style={{
-                  ...styles.glCard,
-                  ...(pendingGlService === 'out_patient' ? styles.glCardSelected : {})
-                }}
-                onClick={() => setPendingGlService('out_patient')}
-              >
-                <div style={{
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  border: `2px solid ${pendingGlService === 'out_patient' ? '#3498db' : '#cbd5e0'}`,
-                  backgroundColor: pendingGlService === 'out_patient' ? '#3498db' : 'white',
-                  flexShrink: 0
-                }} />
-                <div>
-                  <div style={{ fontWeight: '600', color: '#2c3e50' }}>Out Patient</div>
-                  <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginTop: '4px' }}>
-                    Patient will be treated without admission
-                  </div>
+            <div
+              style={{
+                ...styles.glCard,
+                ...(pendingGlService === 'out_patient' ? styles.glCardSelected : {})
+              }}
+              onClick={() => setPendingGlService('out_patient')}
+            >
+              <div style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                border: `2px solid ${pendingGlService === 'out_patient' ? '#3498db' : '#cbd5e0'}`,
+                backgroundColor: pendingGlService === 'out_patient' ? '#3498db' : 'white',
+                flexShrink: 0
+              }} />
+              <div>
+                <div style={{ fontWeight: '600', color: '#2c3e50' }}>Out Patient</div>
+                <div style={{ fontSize: '0.85rem', color: '#7f8c8d', marginTop: '4px' }}>
+                  Patient will be treated without admission
                 </div>
               </div>
-            )}
+            </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
               <button
