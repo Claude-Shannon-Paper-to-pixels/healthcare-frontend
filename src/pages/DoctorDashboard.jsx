@@ -542,18 +542,11 @@ function DoctorDashboard() {
                           <td className="td-insurance">{insuranceLabel}</td>
 
                           <td>
-                            <button
-                              type="button"
-                              className="status-button"
-                              onClick={() => handleOpenStatus(patient, admission)}
-                              disabled={!admission?.id || statusUpdating}
+                            <span
+                              className={`status-badge status-${(admission?.status || "unknown").replace(/\s+/g, "-")}`}
                             >
-                              <span
-                                className={`status-badge status-${(admission?.status || "unknown").replace(/\s+/g, "-")}`}
-                              >
-                                {admission?.status || "N/A"}
-                              </span>
-                            </button>
+                              {admission?.status || "N/A"}
+                            </span>
                           </td>
                           <td>
                             <div className="igl-cell-v2">

@@ -70,8 +70,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
   const currentUser = getUser();
   const roleName = currentUser?.role?.name;
   const isStaffRole = roleName === 'Hospital_staff' || roleName === 'Hospital Staff';
-  const isDoctorRole = roleName === 'Doctor';
-  const canModifyStatus = roleName === 'Administrator' || isStaffRole || isDoctorRole;
+  const canModifyStatus = roleName === 'Administrator' || isStaffRole;
 
   // Dropdown options
   const urgentInvestigationsOptions = [
@@ -581,12 +580,7 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
               style={errors.status ? styles.inputError : styles.select}
               disabled={loading || !canModifyStatus}
             >
-              {isDoctorRole ? (
-                <>
-                  <option value="Today discharge">Today discharge</option>
-                  <option value="Tomorrow discharge">Tomorrow discharge</option>
-                </>
-              ) : isStaffRole ? (
+              {isStaffRole ? (
                 <>
                   <option value="Admitted">Admitted</option>
                   <option value="Discharged">Discharged</option>
