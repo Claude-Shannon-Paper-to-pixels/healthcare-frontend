@@ -830,6 +830,18 @@ function PatientDisplayPage() {
         await createDischargeRecord(formData);
       }
       await refreshDischarge();
+
+      // Sync admission status to match discharge timing
+      const timingToStatus = {
+        'Today discharge': 'Today discharge',
+        'Tomorrow discharge': 'Tomorrow discharge',
+      };
+      const newAdmissionStatus = timingToStatus[formData.discharge_timing];
+      if (newAdmissionStatus && admission?.id) {
+        await updateAdmissionRecord(admission.id, { status: newAdmissionStatus });
+        await refreshPatient();
+      }
+
       toast.success(existingId ? 'Discharge record updated.' : 'Discharge form submitted.');
     } catch (err) {
       toast.error(err.message || 'Failed to save discharge record.');
@@ -1008,7 +1020,7 @@ function PatientDisplayPage() {
             discharge={discharge}
             dischargeLoading={dischargeLoading}
             dischargeError={dischargeError}
-            canEdit={isAdmin() || isStaff()}
+            canEdit={isAdmin() || isDoctor()}
             onSubmitDischarge={handleSubmitDischarge}
             savingSection={savingSection}
           />

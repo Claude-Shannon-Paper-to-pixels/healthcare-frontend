@@ -69,7 +69,9 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
 
   const currentUser = getUser();
   const roleName = currentUser?.role?.name;
-  const canModifyStatus = roleName === 'Administrator' || roleName === 'Hospital_staff';
+  const isStaffRole = roleName === 'Hospital_staff' || roleName === 'Hospital Staff';
+  const isDoctorRole = roleName === 'Doctor';
+  const canModifyStatus = roleName === 'Administrator' || isStaffRole || isDoctorRole;
 
   // Dropdown options
   const urgentInvestigationsOptions = [
@@ -577,14 +579,27 @@ function AdmissionForm({ patientId, onSubmit, onCancel, loading, initialData, su
               value={admissionData.status}
               onChange={handleChange}
               style={errors.status ? styles.inputError : styles.select}
-              // DISABLED if loading OR if user is NOT Admin/Staff
               disabled={loading || !canModifyStatus}
             >
-              <option value="Admission pending">Admission pending</option>
-              <option value="Admitted">Admitted</option>
-              <option value="Today discharge">Today discharge</option>
-              <option value="Tomorrow discharge">Tomorrow discharge</option>
-              <option value="Discharged">Discharged</option>
+              {isDoctorRole ? (
+                <>
+                  <option value="Today discharge">Today discharge</option>
+                  <option value="Tomorrow discharge">Tomorrow discharge</option>
+                </>
+              ) : isStaffRole ? (
+                <>
+                  <option value="Admitted">Admitted</option>
+                  <option value="Discharged">Discharged</option>
+                </>
+              ) : (
+                <>
+                  <option value="Admission pending">Admission pending</option>
+                  <option value="Admitted">Admitted</option>
+                  <option value="Today discharge">Today discharge</option>
+                  <option value="Tomorrow discharge">Tomorrow discharge</option>
+                  <option value="Discharged">Discharged</option>
+                </>
+              )}
             </select>
             {errors.status && <span style={styles.errorMessage}>{errors.status}</span>}
           </div>

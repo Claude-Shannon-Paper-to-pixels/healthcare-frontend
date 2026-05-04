@@ -1052,6 +1052,7 @@ function StaffDashboard() {
         }}
         onSave={handleStatusSave}
         loading={statusUpdating}
+        statusOptions={['Admitted', 'Discharged']}
         error={statusError}
       />
 
