@@ -2,7 +2,7 @@
 
 import { buildPafPayload } from './pafApi';
 
-const DISCHARGE_PDF_URL = 'http://100.64.177.106:8000/api/generate-pdf-discharge';
+const DISCHARGE_PDF_URL = 'https://popular-unseconded-les.ngrok-free.dev/api/generate-pdf-discharge';
 
 /**
  * Submit discharge PDF by sending PAF payload + discharge ID to the API
