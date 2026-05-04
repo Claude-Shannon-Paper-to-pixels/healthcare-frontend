@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initAuth } from '../api/auth';
-import { getPatients, updatePatientInsurance } from '../api/patients';
+import { getPatients, updatePatientInsurance, updateAdmissionRecord } from '../api/patients';
 import { createGLTrackingEntry } from '../api/glTracking';
 import Navbar from '../components/Navbar';
 import DefermentModal from '../components/DefermentModal';
 import AddOnStatusModal from '../components/AddOnStatusModal';
+import AdmissionStatusModal from '../components/AdmissionStatusModal';
 import IglStatusPieChart from './charts/IglStatusPieChart';
 import AdmissionStatusPieChart from './charts/AdmissionStatusPieChart';
 import FiltersBar from './dashboard-widgets/FiltersBar';
@@ -33,6 +34,11 @@ function DoctorDashboard() {
   const [expandedIglCells, setExpandedIglCells] = useState(new Set());
   const [addOnModalOpen, setAddOnModalOpen] = useState(false);
   const [selectedAddOnPatient, setSelectedAddOnPatient] = useState(null);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedAdmission, setSelectedAdmission] = useState(null);
+  const [selectedStatusPatient, setSelectedStatusPatient] = useState(null);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [statusError, setStatusError] = useState('');
 
   useEffect(() => {
     const initialize = async () => {
@@ -362,6 +368,45 @@ function DoctorDashboard() {
     setAddOnModalOpen(true);
   };
 
+  const handleOpenStatus = (patient, admission) => {
+    if (!admission?.id) return;
+    setSelectedStatusPatient(patient);
+    setSelectedAdmission(admission);
+    setStatusError('');
+    setStatusModalOpen(true);
+  };
+
+  const handleStatusSave = async (newStatus) => {
+    if (!selectedAdmission?.id) return;
+    setStatusUpdating(true);
+    setStatusError('');
+    try {
+      await updateAdmissionRecord(selectedAdmission.id, { status: newStatus });
+      setPatients(prevPatients =>
+        prevPatients.map(patient => {
+          if (patient.id === selectedStatusPatient.id) {
+            const updatedAdmissions = Array.isArray(patient.patient_Admission)
+              ? patient.patient_Admission.map(adm =>
+                  adm.id === selectedAdmission.id ? { ...adm, status: newStatus } : adm
+                )
+              : patient.patient_Admission?.id === selectedAdmission.id
+                ? { ...patient.patient_Admission, status: newStatus }
+                : patient.patient_Admission;
+            return { ...patient, patient_Admission: updatedAdmissions };
+          }
+          return patient;
+        })
+      );
+      setStatusModalOpen(false);
+      setSelectedAdmission(null);
+      setSelectedStatusPatient(null);
+    } catch (err) {
+      setStatusError(err.message || 'Failed to update admission status');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
   if (!user || initializing) return <div className="loading">Loading...</div>;
 
   return (
@@ -497,11 +542,18 @@ function DoctorDashboard() {
                           <td className="td-insurance">{insuranceLabel}</td>
 
                           <td>
-                            <span
-                              className={`status-badge status-${(admission?.status || "unknown").replace(/\s+/g, "-")}`}
+                            <button
+                              type="button"
+                              className="status-button"
+                              onClick={() => handleOpenStatus(patient, admission)}
+                              disabled={!admission?.id || statusUpdating}
                             >
-                              {admission?.status || "N/A"}
-                            </span>
+                              <span
+                                className={`status-badge status-${(admission?.status || "unknown").replace(/\s+/g, "-")}`}
+                              >
+                                {admission?.status || "N/A"}
+                              </span>
+                            </button>
                           </td>
                           <td>
                             <div className="igl-cell-v2">
@@ -880,6 +932,23 @@ function DoctorDashboard() {
           setAddOnModalOpen(false);
           setSelectedAddOnPatient(null);
         }}
+      />
+
+      <AdmissionStatusModal
+        isOpen={statusModalOpen}
+        patient={selectedStatusPatient}
+        admission={selectedAdmission}
+        onClose={() => {
+          if (!statusUpdating) {
+            setStatusModalOpen(false);
+            setSelectedAdmission(null);
+            setSelectedStatusPatient(null);
+          }
+        }}
+        onSave={handleStatusSave}
+        loading={statusUpdating}
+        error={statusError}
+        statusOptions={['Today discharge', 'Tomorrow discharge']}
       />
     </div>
   );

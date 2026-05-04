@@ -1554,7 +1554,7 @@ function InsuranceForm({ patientId, onSubmit, onSkip, onCancel, loading, initial
        
         
         <div style={styles.formGroup}>
-          <label style={styles.label}>Can Condition Be Managed <span style={styles.required}>*</span></label>
+          <label style={styles.label}>Can the condition be managed as outpatient? <span style={styles.required}>*</span></label>
           <div style={styles.radioGroup}>
             <label style={styles.radioLabel}>
               <input
